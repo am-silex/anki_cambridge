@@ -1,0 +1,10 @@
+*.pyc
+*~
+*.mo
+*\#
+.*.swp
+.coverage
+aqt/forms
+locale
+tools/runanki.system
+anki/buildhash.py

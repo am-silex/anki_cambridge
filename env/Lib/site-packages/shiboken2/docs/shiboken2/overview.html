@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Generator Overview &#8212; Shiboken  documentation</title>
+    <link rel="stylesheet" href="_static/pyside.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="SampleBinding Example" href="samplebinding.html" />
+    <link rel="prev" title="Shiboken the Binding Generator" href="index.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png" width="199" height="102" /></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="samplebinding.html" title="SampleBinding Example"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Shiboken the Binding Generator"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    </div>
+</div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Generator Overview</a><ul>
+<li><a class="reference internal" href="#creating-new-bindings">Creating new bindings</a></li>
+<li><a class="reference internal" href="#handwritten-inputs">Handwritten inputs</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Shiboken the Binding Generator</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="samplebinding.html"
+                        title="next chapter">SampleBinding Example</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" id="q" size="18" />
+      <input type="submit" value="Go" id="search_button" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="generator-overview">
+<span id="gen-overview"></span><h1>Generator Overview<a class="headerlink" href="#generator-overview" title="Permalink to this headline">¶</a></h1>
+<p>In a few words, the Generator is a utility that parses a collection of header and
+typesystem files, generating other files (code, documentation, etc.) as result.</p>
+<div class="section" id="creating-new-bindings">
+<h2>Creating new bindings<a class="headerlink" href="#creating-new-bindings" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center" id="id1">
+<a class="reference internal image-reference" href="_images/bindinggen-development.png"><img alt="_images/bindinggen-development.png" src="_images/bindinggen-development.png" style="width: 480.0px; height: 150.4px;" /></a>
+<p class="caption"><span class="caption-text">Creating new bindings</span><a class="headerlink" href="#id1" title="Permalink to this image">¶</a></p>
+</div>
+<p>Each module of the generator system has an specific role.</p>
+<ol class="arabic simple">
+<li><p>Provide enough data about the classes and functions.</p></li>
+<li><p>Generate valid code, with modifications from typesystems and injected codes.</p></li>
+<li><p>Modify the API to expose the objects in a way that fits you target language best.</p></li>
+<li><p>Insert customizations where handwritten code is needed.</p></li>
+</ol>
+<div class="figure align-center" id="id2">
+<a class="reference internal image-reference" href="_images/shibokenqtarch.png"><img alt="_images/shibokenqtarch.png" src="_images/shibokenqtarch.png" style="width: 206.4px; height: 148.0px;" /></a>
+<p class="caption"><span class="caption-text">Runtime architecture</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</div>
+<p>The newly created binding will run on top of Shiboken which takes
+care of interfacing Python and the underlying C++ library.</p>
+</div>
+<div class="section" id="handwritten-inputs">
+<h2>Handwritten inputs<a class="headerlink" href="#handwritten-inputs" title="Permalink to this headline">¶</a></h2>
+<p>Creating new bindings involves creating two pieces of “code”: the typesystem and
+the inject code.</p>
+<dl class="field-list simple">
+<dt class="field-odd">typesystem</dt>
+<dd class="field-odd"><p>XML files that provides the developer with a tool to customize the
+way that the generators will see the classes and functions. For
+example, functions can be renamed, have its signature changed and
+many other actions.</p>
+</dd>
+<dt class="field-even">inject code</dt>
+<dd class="field-even"><p>allows the developer to insert handwritten code where the generated
+code is not suitable or needs some customization.</p>
+</dd>
+</dl>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>

@@ -1,0 +1,171 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>Type System Reference &#8212; Shiboken  documentation</title>
+    <link rel="stylesheet" href="_static/pyside.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Specifying Types" href="typesystem_specifying_types.html" />
+    <link rel="prev" title="Frequently Asked Questions" href="faq.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png" width="199" height="102" /></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="typesystem_specifying_types.html" title="Specifying Types"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="faq.html" title="Frequently Asked Questions"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    </div>
+</div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="faq.html"
+                        title="previous chapter">Frequently Asked Questions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="typesystem_specifying_types.html"
+                        title="next chapter">Specifying Types</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" id="q" size="18" />
+      <input type="submit" value="Go" id="search_button" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="type-system-reference">
+<h1>Type System Reference<a class="headerlink" href="#type-system-reference" title="Permalink to this headline">¶</a></h1>
+<p>The typesystem is used by a binding generator or any other software using the APIExtractor library
+to map a C++ library API onto a higher level language.</p>
+<p>The typesystem specification is a handwritten XML document listing the types
+that will be available in the generated target language API; types that are not
+declared in the specification will be ignored along with everything depending on
+them. In addition, it is possible to manipulate and modify types and functions.
+It is even possible to use the typesystem specification to inject arbitrary
+code into the source files, such as an extra member function.</p>
+<p>Below there is a complete reference guide to the various nodes (XML tags) of the typesystem.
+For usage examples, take a look at the typesystem files used to generate PySide2. These files
+can be found in the PySide2/&lt;QT_MODULE_NAME&gt; directory of the PySide2 package.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_specifying_types.html">Specifying Types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#including-snippets">Including Snippets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#id1">typesystem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#load-typesystem">load-typesystem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#rejection">rejection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#primitive-type">primitive-type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#namespace-type">namespace-type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#enum-type">enum-type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#reject-enum-value">reject-enum-value</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#value-type">value-type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#object-type">object-type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#interface-type">interface-type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#container-type">container-type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#typedef-type">typedef-type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#custom-type">custom-type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#smart-pointer-type">smart-pointer-type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_specifying_types.html#function">function</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_manipulating_objects.html">Manipulating Object and Value Types</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_manipulating_objects.html#inject-code">inject-code</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_manipulating_objects.html#modify-field">modify-field</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_manipulating_objects.html#modify-function">modify-function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_manipulating_objects.html#add-function">add-function</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_manipulating_objects.html#conversion-rule">conversion-rule</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_modify_function.html">Modifying Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_modify_function.html#modify-argument">modify-argument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_modify_function.html#remove">remove</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_modify_function.html#access">access</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_modify_function.html#rename">rename</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_arguments.html">Modifying Arguments</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_arguments.html#conversion-rule">conversion-rule</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_arguments.html#remove-argument">remove-argument</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_arguments.html#rename-to">rename to</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_arguments.html#remove-default-expression">remove-default-expression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_arguments.html#replace-default-expression">replace-default-expression</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_arguments.html#replace-type">replace-type</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_arguments.html#define-ownership">define-ownership</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_arguments.html#reference-count">reference-count</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_arguments.html#replace-value">replace-value</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_arguments.html#parent">parent</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_solving_compilation.html">Solving compilation problems</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_solving_compilation.html#suppress-warning">suppress-warning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_solving_compilation.html#extra-includes">extra-includes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_solving_compilation.html#include">include</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_templates.html">Using Code Templates</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_templates.html#template">template</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_templates.html#insert-template">insert-template</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_templates.html#replace">replace</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_conversionrule.html">Conversion Rule Tag</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_conversionrule.html#conversion-rule">conversion-rule</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_conversionrule.html#native-to-target">native-to-target</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_conversionrule.html#target-to-native">target-to-native</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_conversionrule.html#add-conversion">add-conversion</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="typesystem_documentation.html">Manipulating Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_documentation.html#inject-documentation">inject-documentation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="typesystem_documentation.html#modify-documentation">modify-documentation</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>

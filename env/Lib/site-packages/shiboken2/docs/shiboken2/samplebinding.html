@@ -1,0 +1,335 @@
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta charset="utf-8" />
+    <title>SampleBinding Example &#8212; Shiboken  documentation</title>
+    <link rel="stylesheet" href="_static/pyside.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Command line options" href="commandlineoptions.html" />
+    <link rel="prev" title="Generator Overview" href="overview.html" /> 
+  </head><body>
+<div id="container">
+<div class="header">
+    <div class="header_container">
+        <div class="logo"><a href="http://www.pyside.org"><img alt="PySide" src="_static/pysidelogo.png" width="199" height="102" /></a></div>
+  
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a></li>
+        <li class="right" >
+          <a href="commandlineoptions.html" title="Command line options"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="overview.html" title="Generator Overview"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Shiboken  documentation</a> &#187;</li> 
+      </ul>
+    </div>
+    </div>
+</div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">SampleBinding Example</a><ul>
+<li><a class="reference internal" href="#shiboken-typesystem">Shiboken typesystem</a></li>
+<li><a class="reference internal" href="#object-ownership-rules">Object ownership rules</a></li>
+<li><a class="reference internal" href="#building">Building</a></li>
+<li><a class="reference internal" href="#using-the-python-module">Using the Python module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="overview.html"
+                        title="previous chapter">Generator Overview</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="commandlineoptions.html"
+                        title="next chapter">Command line options</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" id="q" size="18" />
+      <input type="submit" value="Go" id="search_button" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="samplebinding-example">
+<h1>SampleBinding Example<a class="headerlink" href="#samplebinding-example" title="Permalink to this headline">¶</a></h1>
+<p>The example showcases how you can generate CPython-based binding code for a
+C++ library using Shiboken. The C++ library is called <code class="code docutils literal notranslate"><span class="pre">Universe</span></code>,
+with two classes: <code class="code docutils literal notranslate"><span class="pre">Icecream</span></code> and <code class="code docutils literal notranslate"><span class="pre">Truck</span></code>. Ice creams are
+characterized by their flavor, and <code class="code docutils literal notranslate"><span class="pre">Truck</span></code> serves as a vehicle of
+<code class="code docutils literal notranslate"><span class="pre">Icecream</span></code> distribution for kids in a neighborhood.</p>
+<p>First, let’s look at the definition of the two classes:</p>
+<div class="literal-block-wrapper docutils container" id="id1">
+<div class="code-block-caption"><span class="caption-text">icecream.h</span><a class="headerlink" href="#id1" title="Permalink to this code">¶</a></div>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span> <span class="k">class</span> <span class="nc">Icecream</span>
+ <span class="p">{</span>
+ <span class="k">public</span><span class="o">:</span>
+     <span class="n">Icecream</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">flavor</span><span class="p">);</span>
+     <span class="k">virtual</span> <span class="n">Icecream</span> <span class="o">*</span><span class="nf">clone</span><span class="p">();</span>
+     <span class="k">virtual</span> <span class="o">~</span><span class="n">Icecream</span><span class="p">();</span>
+     <span class="k">virtual</span> <span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">getFlavor</span><span class="p">();</span>
+
+ <span class="k">private</span><span class="o">:</span>
+     <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">m_flavor</span><span class="p">;</span>
+ <span class="p">};</span>
+</pre></div>
+</div>
+</div>
+<div class="literal-block-wrapper docutils container" id="id2">
+<div class="code-block-caption"><span class="caption-text">truck.h</span><a class="headerlink" href="#id2" title="Permalink to this code">¶</a></div>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span> <span class="k">class</span> <span class="nc">Truck</span> <span class="p">{</span>
+ <span class="k">public</span><span class="o">:</span>
+     <span class="n">Truck</span><span class="p">(</span><span class="kt">bool</span> <span class="n">leaveOnDestruction</span> <span class="o">=</span> <span class="nb">false</span><span class="p">);</span>
+     <span class="n">Truck</span><span class="p">(</span><span class="k">const</span> <span class="n">Truck</span> <span class="o">&amp;</span><span class="n">other</span><span class="p">);</span>
+     <span class="n">Truck</span><span class="o">&amp;</span> <span class="k">operator</span><span class="o">=</span><span class="p">(</span><span class="k">const</span> <span class="n">Truck</span> <span class="o">&amp;</span><span class="n">other</span><span class="p">);</span>
+     <span class="o">~</span><span class="n">Truck</span><span class="p">();</span>
+
+     <span class="kt">void</span> <span class="nf">addIcecreamFlavor</span><span class="p">(</span><span class="n">Icecream</span> <span class="o">*</span><span class="n">icecream</span><span class="p">);</span>
+     <span class="kt">void</span> <span class="nf">printAvailableFlavors</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+
+     <span class="kt">bool</span> <span class="nf">deliver</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+     <span class="kt">void</span> <span class="nf">arrive</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+     <span class="kt">void</span> <span class="nf">leave</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+
+     <span class="kt">void</span> <span class="nf">setLeaveOnDestruction</span><span class="p">(</span><span class="kt">bool</span> <span class="n">value</span><span class="p">);</span>
+     <span class="kt">void</span> <span class="nf">setArrivalMessage</span><span class="p">(</span><span class="k">const</span> <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="o">&amp;</span><span class="n">message</span><span class="p">);</span>
+
+ <span class="k">private</span><span class="o">:</span>
+     <span class="kt">void</span> <span class="n">clearFlavors</span><span class="p">();</span>
+
+     <span class="kt">bool</span> <span class="n">m_leaveOnDestruction</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+     <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">m_arrivalMessage</span> <span class="o">=</span> <span class="s">&quot;A new icecream truck has arrived!</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">;</span>
+     <span class="n">std</span><span class="o">::</span><span class="n">vector</span> <span class="n">m_flavors</span><span class="p">;</span>
+ <span class="p">};</span>
+</pre></div>
+</div>
+</div>
+<p>Here is a summary of what the <code class="code docutils literal notranslate"><span class="pre">Universe</span></code> library includes:</p>
+<ul class="simple">
+<li><p>The <code class="code docutils literal notranslate"><span class="pre">Icecream</span></code> polymorphic type, which is intended to be overridden.</p></li>
+<li><p>The <code class="code docutils literal notranslate"><span class="pre">Icecream::getFlavor()</span></code> method returns the flavor depending on the
+actual derived type.</p></li>
+<li><p>The <code class="code docutils literal notranslate"><span class="pre">Truck</span></code> value type that contains pointers, hence the copy
+constructor.</p></li>
+<li><p><code class="code docutils literal notranslate"><span class="pre">Truck</span></code> stores the <code class="code docutils literal notranslate"><span class="pre">Icecream</span></code> objects in a vector, which can be
+modified via <code class="code docutils literal notranslate"><span class="pre">Truck::addIcecreamFlavor()</span></code>.</p></li>
+<li><p>The <code class="code docutils literal notranslate"><span class="pre">Truck’s</span></code> arrival message can be customized using its
+<code class="code docutils literal notranslate"><span class="pre">setArrivalMessage()</span></code> method.</p></li>
+<li><p>The <code class="code docutils literal notranslate"><span class="pre">Truck::deliver()</span></code> method tells us if the ice cream delivery was
+successful.</p></li>
+</ul>
+<div class="section" id="shiboken-typesystem">
+<h2>Shiboken typesystem<a class="headerlink" href="#shiboken-typesystem" title="Permalink to this headline">¶</a></h2>
+<p>Now that the library definitions are in place, Shiboken generator needs a header
+file that includes the types we are interested in:</p>
+<div class="literal-block-wrapper docutils container" id="id3">
+<div class="code-block-caption"><span class="caption-text">bindings.h</span><a class="headerlink" href="#id3" title="Permalink to this code">¶</a></div>
+<div class="highlight-cpp notranslate"><div class="highlight"><pre><span></span> <span class="cp">#ifndef BINDINGS_H</span>
+ <span class="cp">#define BINDINGS_H</span>
+ <span class="cp">#include</span> <span class="cpf">&quot;icecream.h&quot;</span><span class="cp"></span>
+ <span class="cp">#include</span> <span class="cpf">&quot;truck.h&quot;</span><span class="cp"></span>
+ <span class="cp">#endif </span><span class="c1">// BINDINGS_H</span>
+</pre></div>
+</div>
+</div>
+<p>In addition, Shiboken also requires an XML-based typesystem file that defines the
+relationship between C++ and Python types:</p>
+<div class="literal-block-wrapper docutils container" id="id4">
+<div class="code-block-caption"><span class="caption-text">bindings.xml</span><a class="headerlink" href="#id4" title="Permalink to this code">¶</a></div>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span> <span class="cp">&lt;?xml version=&quot;1.0&quot;?&gt;</span>
+ <span class="nt">&lt;typesystem</span> <span class="na">package=</span><span class="s">&quot;Universe&quot;</span><span class="nt">&gt;</span>
+     <span class="nt">&lt;primitive-type</span> <span class="na">name=</span><span class="s">&quot;bool&quot;</span><span class="nt">/&gt;</span>
+     <span class="nt">&lt;primitive-type</span> <span class="na">name=</span><span class="s">&quot;std::string&quot;</span><span class="nt">/&gt;</span>
+     <span class="nt">&lt;object-type</span> <span class="na">name=</span><span class="s">&quot;Icecream&quot;</span><span class="nt">&gt;</span>
+         <span class="nt">&lt;modify-function</span> <span class="na">signature=</span><span class="s">&quot;clone()&quot;</span><span class="nt">&gt;</span>
+             <span class="nt">&lt;modify-argument</span> <span class="na">index=</span><span class="s">&quot;0&quot;</span><span class="nt">&gt;</span>
+                 <span class="nt">&lt;define-ownership</span> <span class="na">owner=</span><span class="s">&quot;c++&quot;</span><span class="nt">/&gt;</span>
+             <span class="nt">&lt;/modify-argument&gt;</span>
+         <span class="nt">&lt;/modify-function&gt;</span>
+     <span class="nt">&lt;/object-type&gt;</span>
+     <span class="nt">&lt;value-type</span> <span class="na">name=</span><span class="s">&quot;Truck&quot;</span><span class="nt">&gt;</span>
+         <span class="nt">&lt;modify-function</span> <span class="na">signature=</span><span class="s">&quot;addIcecreamFlavor(Icecream*)&quot;</span><span class="nt">&gt;</span>
+             <span class="nt">&lt;modify-argument</span> <span class="na">index=</span><span class="s">&quot;1&quot;</span><span class="nt">&gt;</span>
+                 <span class="nt">&lt;define-ownership</span> <span class="na">owner=</span><span class="s">&quot;c++&quot;</span><span class="nt">/&gt;</span>
+             <span class="nt">&lt;/modify-argument&gt;</span>
+         <span class="nt">&lt;/modify-function&gt;</span>
+     <span class="nt">&lt;/value-type&gt;</span>
+ <span class="nt">&lt;/typesystem&gt;</span>
+</pre></div>
+</div>
+</div>
+<p>The first important thing to notice here is that we declare <code class="code docutils literal notranslate"><span class="pre">&quot;bool&quot;</span></code> and
+<code class="code docutils literal notranslate"><span class="pre">&quot;std::string&quot;</span></code> as primitive types. These types are used by some of the
+C++ methods as parameters or return types, so Shiboken must know about them.
+It can then generate relevant conversion code between C++ and Python, although
+most C++ primitive types are handled by Shiboken without additional code.</p>
+<p>Next, we declare the two aforementioned classes. One of them as an
+“object-type” and the other as a “value-type”. The main difference is that
+object-types are passed around in generated code as pointers, whereas
+value-types are copied (value semantics).</p>
+<p>By specifying the names of these classes in the typesystem file, Shiboken
+automatically tries to generate bindings for all methods of those
+classes. You need not mention all the methods manually in the XML file, unless
+you want to modify them.</p>
+</div>
+<div class="section" id="object-ownership-rules">
+<h2>Object ownership rules<a class="headerlink" href="#object-ownership-rules" title="Permalink to this headline">¶</a></h2>
+<p>Shiboken cannot magically know who is responsible for freeing the C++ objects
+allocated in the Python code. It can guess, but it’s not always correct. There
+can be cases where Python should release the C++ memory when the ref count
+of the Python object becomes zero. It should never delete the C++ object assuming
+that it will not be deleted by the C++ library or maybe it’s parented to another
+object (like QWidgets).</p>
+<p>In our case, the <code class="code docutils literal notranslate"><span class="pre">clone()</span></code> method is only called inside the C++ library,
+and we assume that the C++ code takes care of releasing the cloned object.</p>
+<p>As for <code class="code docutils literal notranslate"><span class="pre">addIcecreamFlavor()</span></code>, we know that a <code class="code docutils literal notranslate"><span class="pre">Truck</span></code> owns the
+<code class="code docutils literal notranslate"><span class="pre">Icecream</span></code> object, and will remove it once the <code class="code docutils literal notranslate"><span class="pre">Truck</span></code> is
+destroyed. That’s why the ownership is set to “c++” in the typesystem file,
+so that the C++ objects are not deleted when the corresponding Python names
+go out of scope.</p>
+</div>
+<div class="section" id="building">
+<h2>Building<a class="headerlink" href="#building" title="Permalink to this headline">¶</a></h2>
+<p>To build the <code class="code docutils literal notranslate"><span class="pre">Universe</span></code> custom library and then generate bindings for it,
+use the <code class="file docutils literal notranslate"><span class="pre">CMakeLists.txt</span></code> file provided with the example. You can reuse the
+file for your own libraries with minor changes.</p>
+<p>Now, run the command <strong class="command">&quot;cmake .&quot;</strong> from the prompt to configure the
+project and build with the toolchain of your choice (we recommend the
+‘(N)Makefiles’ generator though).</p>
+<p>As a result, you end up with two shared libraries:
+<code class="file docutils literal notranslate"><span class="pre">libuniverse.(so/dylib/dll)</span></code> and <code class="file docutils literal notranslate"><span class="pre">Universe.(so/pyd)</span></code>. The former is
+the custom C++ library, and the latter is the Python module that can be
+imported in your Python script.</p>
+<p>Refer to the <code class="file docutils literal notranslate"><span class="pre">README.md</span></code> file for more details about the Windows-specific
+build instructions.</p>
+</div>
+<div class="section" id="using-the-python-module">
+<h2>Using the Python module<a class="headerlink" href="#using-the-python-module" title="Permalink to this headline">¶</a></h2>
+<p>The following script uses the <code class="code docutils literal notranslate"><span class="pre">Universe</span></code> module, derives a few types from
+<code class="code docutils literal notranslate"><span class="pre">Icecream</span></code>, implements virtual methods, instantiates objects, and much more:</p>
+<div class="literal-block-wrapper docutils container" id="id5">
+<div class="code-block-caption"><span class="caption-text">main.py</span><a class="headerlink" href="#id5" title="Permalink to this code">¶</a></div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span> <span class="kn">from</span> <span class="nn">Universe</span> <span class="kn">import</span> <span class="n">Icecream</span><span class="p">,</span> <span class="n">Truck</span>
+
+ <span class="k">class</span> <span class="nc">VanillaChocolateIcecream</span><span class="p">(</span><span class="n">Icecream</span><span class="p">):</span>
+     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flavor</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+         <span class="nb">super</span><span class="p">(</span><span class="n">VanillaChocolateIcecream</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+
+     <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+         <span class="k">return</span> <span class="n">VanillaChocolateIcecream</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getFlavor</span><span class="p">())</span>
+
+     <span class="k">def</span> <span class="nf">getFlavor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+         <span class="k">return</span> <span class="s2">&quot;vanilla sprinked with chocolate&quot;</span>
+
+ <span class="k">class</span> <span class="nc">VanillaChocolateCherryIcecream</span><span class="p">(</span><span class="n">VanillaChocolateIcecream</span><span class="p">):</span>
+     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flavor</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
+         <span class="nb">super</span><span class="p">(</span><span class="n">VanillaChocolateIcecream</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">flavor</span><span class="p">)</span>
+
+     <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+         <span class="k">return</span> <span class="n">VanillaChocolateCherryIcecream</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getFlavor</span><span class="p">())</span>
+
+     <span class="k">def</span> <span class="nf">getFlavor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+         <span class="n">base_flavor</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">VanillaChocolateCherryIcecream</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">getFlavor</span><span class="p">()</span>
+         <span class="k">return</span> <span class="n">base_flavor</span> <span class="o">+</span> <span class="s2">&quot; and a cherry&quot;</span>
+
+ <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+     <span class="n">leave_on_destruction</span> <span class="o">=</span> <span class="bp">True</span>
+     <span class="n">truck</span> <span class="o">=</span> <span class="n">Truck</span><span class="p">(</span><span class="n">leave_on_destruction</span><span class="p">)</span>
+
+     <span class="n">flavors</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;vanilla&quot;</span><span class="p">,</span> <span class="s2">&quot;chocolate&quot;</span><span class="p">,</span> <span class="s2">&quot;strawberry&quot;</span><span class="p">]</span>
+     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">flavors</span><span class="p">:</span>
+         <span class="n">icecream</span> <span class="o">=</span> <span class="n">Icecream</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+         <span class="n">truck</span><span class="o">.</span><span class="n">addIcecreamFlavor</span><span class="p">(</span><span class="n">icecream</span><span class="p">)</span>
+
+     <span class="n">truck</span><span class="o">.</span><span class="n">addIcecreamFlavor</span><span class="p">(</span><span class="n">VanillaChocolateIcecream</span><span class="p">())</span>
+     <span class="n">truck</span><span class="o">.</span><span class="n">addIcecreamFlavor</span><span class="p">(</span><span class="n">VanillaChocolateCherryIcecream</span><span class="p">())</span>
+
+     <span class="n">truck</span><span class="o">.</span><span class="n">arrive</span><span class="p">()</span>
+     <span class="n">truck</span><span class="o">.</span><span class="n">printAvailableFlavors</span><span class="p">()</span>
+     <span class="n">result</span> <span class="o">=</span> <span class="n">truck</span><span class="o">.</span><span class="n">deliver</span><span class="p">()</span>
+
+     <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+         <span class="k">print</span><span class="p">(</span><span class="s2">&quot;All the kids got some icecream!&quot;</span><span class="p">)</span>
+     <span class="k">else</span><span class="p">:</span>
+         <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Aww, someone didn&#39;t get the flavor they wanted...&quot;</span><span class="p">)</span>
+
+     <span class="k">if</span> <span class="ow">not</span> <span class="n">result</span><span class="p">:</span>
+         <span class="n">special_truck</span> <span class="o">=</span> <span class="n">Truck</span><span class="p">(</span><span class="n">truck</span><span class="p">)</span>
+         <span class="k">del</span> <span class="n">truck</span>
+
+         <span class="k">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+         <span class="n">special_truck</span><span class="o">.</span><span class="n">setArrivalMessage</span><span class="p">(</span><span class="s2">&quot;A new SPECIAL icecream truck has arrived!</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+         <span class="n">special_truck</span><span class="o">.</span><span class="n">arrive</span><span class="p">()</span>
+         <span class="n">special_truck</span><span class="o">.</span><span class="n">addIcecreamFlavor</span><span class="p">(</span><span class="n">Icecream</span><span class="p">(</span><span class="s2">&quot;SPECIAL *magical* icecream&quot;</span><span class="p">))</span>
+         <span class="n">special_truck</span><span class="o">.</span><span class="n">printAvailableFlavors</span><span class="p">()</span>
+         <span class="n">special_truck</span><span class="o">.</span><span class="n">deliver</span><span class="p">()</span>
+         <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Now everyone got the flavor they wanted!&quot;</span><span class="p">)</span>
+         <span class="n">special_truck</span><span class="o">.</span><span class="n">leave</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<p>After importing the classes from the <code class="code docutils literal notranslate"><span class="pre">Universe</span></code> module, it derives two
+types from <code class="code docutils literal notranslate"><span class="pre">Icecream</span></code> for different “flavors”. It then creates a
+<code class="code docutils literal notranslate"><span class="pre">truck</span></code> to deliver some regular flavored Icecreams and two special ones.</p>
+<p>If the delivery fails, a new <code class="code docutils literal notranslate"><span class="pre">truck</span></code> is created with the old flavors
+copied over, and a new <em>magical</em> flavor that will surely satisfy all customers.</p>
+<p>The script above shows how to derive from C++ types, override virtual methods,
+create and destroy objects, and more. Try running it to see if the ice creams
+are delivered.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You can find the sources for this example under
+<code class="file docutils literal notranslate"><span class="pre">&lt;PYTHON_ENV_ROOT&gt;/site-packages/lib/PySide2/examples/samplebinding</span></code>.</p>
+</div>
+<dl class="simple">
+<dt>Refer to the following topics for detailed information about using Shiboken:</dt><dd><ul class="simple">
+<li><p><a class="reference internal" href="shibokenmodule.html"><span class="doc">Shiboken module</span></a></p></li>
+<li><p><a class="reference internal" href="typesystemvariables.html"><span class="doc">Type System Variables</span></a></p></li>
+<li><p><a class="reference internal" href="typeconverters.html"><span class="doc">User Defined Type Conversion</span></a></p></li>
+<li><p><a class="reference internal" href="ownership.html"><span class="doc">Object ownership</span></a></p></li>
+<li><p><a class="reference internal" href="faq.html"><span class="doc">Frequently Asked Questions</span></a></p></li>
+</ul>
+</dd>
+</dl>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+    <a href="http://www.qt.io/"><img src="_static/logo_qt.png" alt="Qt" border="0" /></a>
+    <a href="http://www.python.org"><img src="_static/logo_python.jpg" alt="Python" border="0" /></a>
+    </div>
+</div>
+  </body>
+</html>

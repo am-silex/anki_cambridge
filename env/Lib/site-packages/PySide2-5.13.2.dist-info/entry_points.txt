@@ -1,0 +1,5 @@
+[console_scripts]
+pyside2-lupdate = PySide2.scripts.pyside_tool:main
+pyside2-rcc = PySide2.scripts.pyside_tool:main
+pyside2-uic = PySide2.scripts.uic:main
+
