@@ -24,7 +24,7 @@ class CambDownloader():
         self.base_url = 'https://dictionary.cambridge.org/'
         self.user_url = ''
 
-    def get_word_data(self):
+    def get_word_data(self,full_link = False):
 
         self.word_data = []
         if not self.language.lower().startswith('en'):
@@ -36,7 +36,10 @@ class CambDownloader():
         # Do our parsing with BeautifulSoup
 
         # self.ws = word_soup
-        response = urllib.request.urlopen(self.url + urllib.parse.quote(word.encode('utf-8')))
+        if full_link:
+            response = urllib.request.urlopen(self.user_url)
+        else:
+            response = urllib.request.urlopen(self.url + urllib.parse.quote(word.encode('utf-8')))
         html_doc = response.read()
         word_soup = BeautifulSoup(html_doc, "html.parser")
 

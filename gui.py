@@ -3,7 +3,6 @@
 #
 # License: GNU AGPL, version 3 or later;
 # http://www.gnu.org/copyleft/agpl.html
-
 """
 Anki2 add-on to download card's fields with audio from Cambridge Dictionary
 
@@ -11,8 +10,8 @@ Anki2 add-on to download card's fields with audio from Cambridge Dictionary
 """
 
 import os
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction, QMenu, QDialog, QVBoxLayout, QLabel
+from PyQt5.QtGui import QIcon, QFont
+from PyQt5.QtWidgets import QAction, QMenu, QDialog, QVBoxLayout, QLabel, QLineEdit, QGridLayout, QDialogButtonBox, QCheckBox 
 
 
 from aqt import mw
@@ -25,13 +24,11 @@ from anki.hooks import addHook
 from .processors import processor
 #from .review_gui import review_entries
 #from .update_gui import update_data
-
 from .Cambridge import CambDownloader
-
+from .dispatcher import *
 CREATE_NEW_NOTE_SHORTCUT = "t"
 # DOWNLOAD_SIDE_SHORTCUT = "t"
 # DOWNLOAD_MANUAL_SHORTCUT = "Ctrl+t"
-
 icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
 # Place were we keep our megaphone icon.
 
@@ -41,7 +38,7 @@ icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
 #    Download audio data.
 
 #    Go through the list of words and list of sites and download each
-#    word from each site. Then call a function that asks the user what
+#    word from each site.  Then call a function that asks the user what
 #    to do.
 #    """
 #    retrieved_entries = []
@@ -52,18 +49,18 @@ icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
 #            # Use a public variable to set the language.
 #            dloader.language = language
 #            try:
-#                # Make it easer inside the downloader. If anything
+#                # Make it easer inside the downloader.  If anything
 #                # goes wrong, don't catch, or raise whatever you want.
 #                dloader.download_files(field_data)
 #            except:
-#                #  # Uncomment this raise while testing a new
-#                #  # downloaders.  Also use the “For testing”
-#                #  # downloaders list with your downloader in
-#                #  # downloaders.__init__
+#                # # Uncomment this raise while testing a new
+#                # # downloaders.  Also use the “For testing”
+#                # # downloaders list with your downloader in
+#                # # downloaders.__init__
 #                # raise
 #                continue
 #            retrieved_entries += dloader.downloads_list
-#    # Significantly changed the logic. Put all entries in one
+#    # Significantly changed the logic.  Put all entries in one
 #    # list, do stuff with that list of DownloadEntries.
 #    for entry in retrieved_entries:
 #        # Do the processing before the reviewing now.
@@ -84,13 +81,13 @@ icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
 #    if any(entry.action == Action.Add for entry in retrieved_entries):
 #        note.flush()
 #        # We have to do different things here, for download during
-#        # review, we should reload the card and replay. When we are in
+#        # review, we should reload the card and replay.  When we are in
 #        # the add dialog, we do a field update there.
 #        rnote = None
 #        try:
 #            rnote = mw.reviewer.card.note()
 #        except AttributeError:
-#            # Could not get the note of the reviewer's card. Probably
+#            # Could not get the note of the reviewer's card.  Probably
 #            # not reviewing at all.
 #            return
 #        if note == rnote:
@@ -119,7 +116,7 @@ icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
 #    Download audio for all fields.
 
 #    Download audio for all fields of the note passed in or the current
-#    note. When ask_user is true, show a dialog that lets the user
+#    note.  When ask_user is true, show a dialog that lets the user
 #    modify these texts.
 #    """
 #    if not note:
@@ -142,7 +139,7 @@ icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
 #            field_data, language_code = update_data(field_data, language_code)
 #        except RuntimeError as rte:
 #            if 'cancel' in str(rte):
-#                # User canceled. No need for the "Nothing downloaded"
+#                # User canceled.  No need for the "Nothing downloaded"
 #                # message.
 #                return
 #            else:
@@ -187,44 +184,87 @@ icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
 
 # Either reuse an edit-media sub-menu created by another add-on
 # (probably the mhwave (ex sweep) add-on by Y.T.) or create that
-# menu. When we already have that menu, add a separator, otherwise
+# menu.  When we already have that menu, add a separator, otherwise
 # create that menu.
 
 # try:
 #     mw.edit_media_submenu.addSeparator()
 # except AttributeError:
-
 class LinkDialogue(QDialog):
     """
     A Dialog to let the user edit the texts or change the language.
     """
     def __init__(self):
-        #self.field_data_list = field_data_list
-        #self.language_code = language_code  # possibly None
-        #self.language_code_lineedit = None
-        #self.word_lineedits = []
-        #self.kanji_lineedits = []
-        #self.kana_lineedits = []
         self.user_url = ''
         self.word = ''
-        # super(ReviewFields, self).__init__()  # Cut-and-pasted
         QDialog.__init__(self)
         self.initUI()
 
     def initUI(self):
         u"""Build the dialog box."""
-#        language_help = _(u'''<h4>Language code.</h4>
-#<p>This will be transmitted as part of the requst sent to the
-#sites. As some sites only support one language, this is also used to
-#decide where to send the requests. Use a standard language code
-#here. Using invalid values or codes of unsupported languages will
-#result in no downloads. Do <em>not</em> use domain codes (E.g. use
-#<code>zh</code> rather than <code>cn</code> for Chinese.)</p>''')
+
         self.setWindowTitle(_(u'Anki – Download definitions'))
         self.setWindowIcon(QIcon(":/icons/anki.png"))
         layout = QVBoxLayout()
         self.setLayout(layout)
         edit_word_head = QLabel()
+
+        edit_word_head.setText(_('''<h4>Enter link for parsing</h4>'''))
+        bold_font = QFont()
+        bold_font.setBold(True)
+        edit_word_head.setFont(bold_font)
+        layout.addWidget(edit_word_head)
+        
+        self.link_editor = QLineEdit()
+        self.link_editor.placeholderText = 'Enter your link here'
+        layout.addWidget(self.link_editor)
+
+        dialog_buttons = QDialogButtonBox(self)
+        dialog_buttons.addButton(QDialogButtonBox.Cancel)
+        dialog_buttons.addButton(QDialogButtonBox.Ok)
+        dialog_buttons.accepted.connect(self.accept)
+        dialog_buttons.rejected.connect(self.reject)
+        layout.addWidget(dialog_buttons)
+
+class WordDefDialogue(QDialog):
+    """
+    A Dialog to let the user edit the texts or change the language.
+    """
+    def __init__(self):
+        self.word_data = []
+        self.word = ''
+        QDialog.__init__(self)
+        self.initUI()
+
+    def initUI(self):
+        u"""Build the dialog box."""
+
+        self.setWindowTitle(self.word)
+        self.setWindowIcon(QIcon(":/icons/anki.png"))
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        for word_entry in self.word_data:
+            entry_checkbox = QCheckBox(word_entry.word_title)
+        layout.addWidget(entry_checkbox)
+
+        #edit_word_head.setText(_('''<h4>Enter link for parsing</h4>'''))
+        #bold_font = QFont()
+        #bold_font.setBold(True)
+        #edit_word_head.setFont(bold_font)
+        #layout.addWidget(edit_word_head)
+        
+        #link_editor = QLineEdit()
+        #link_editor.placeholderText = 'Enter your link here'
+        #layout.addWidget(link_editor)
+        #self.user_url = link_editor.text
+
+        dialog_buttons = QDialogButtonBox(self)
+        dialog_buttons.addButton(QDialogButtonBox.Cancel)
+        dialog_buttons.addButton(QDialogButtonBox.Ok)
+        dialog_buttons.accepted.connect(self.accept)
+        dialog_buttons.rejected.connect(self.reject)
+        layout.addWidget(dialog_buttons)
+
 
         # Now decide which help text to show.
         # First, decide if we have any split fields.
@@ -237,8 +277,8 @@ class LinkDialogue(QDialog):
         #        edit_word_head.setText(base_et)
         #else:
         #    edit_word_head.setText(single_et)
-        edit_word_head.setText('Enter link for your word on Camb dict')
-        layout.addWidget(edit_word_head)
+
+
 #        self.create_data_rows(layout)
 #        line = QFrame(self)
 #        line.setFrameShape(QFrame.HLine)
@@ -331,22 +371,14 @@ class LinkDialogue(QDialog):
    
 def ask_user_for_link():
     link_dialog = LinkDialogue()
-    if not link_dialog.exec_():
-        raise RuntimeError('User cancel')
-
-mw.edit_cambridge_submenu = QMenu(u"&Cambridge Dictionary", mw)
-mw.form.menuEdit.addSeparator()
-mw.form.menuEdit.addMenu(mw.edit_cambridge_submenu)
-
-
-mw.create_notes_from_link_action = QAction(mw)
-mw.create_notes_from_link_action.setText("Create new note fromm link")
-# mw.note_download_action.setIcon(QIcon(os.path.join(icons_dir,
-#                                                    'download_note_audio.png')))
-mw.create_notes_from_link_action.setToolTip(
-     "Fetch word definitions from provided link.")
-#mw.create_notes_from_link_action.setShortcut(CREATE_NEW_NOTE_SHORTCUT)
-mw.create_notes_from_link_action.triggered.connect(ask_user_for_link)
+    if link_dialog.exec_():
+        word_data = get_word_definitions_from_link(link_dialog.link_editor.text)
+        if word_data:
+            word_select = WordDefDialogue()
+            word_select.word = '123'
+            word_select.word_data = word_data
+            word_select.exec_()
+        #raise RuntimeError('User cancel')
 
 # mw.side_download_action = QAction(mw)
 # mw.side_download_action.setText(u"Side audio")
@@ -366,12 +398,22 @@ mw.create_notes_from_link_action.triggered.connect(ask_user_for_link)
 # mw.manual_download_action.setShortcut(DOWNLOAD_MANUAL_SHORTCUT)
 # mw.manual_download_action.triggered.connect(download_manual)
 
-
-mw.edit_cambridge_submenu.addAction(mw.create_notes_from_link_action)
-
 # Todo: switch off at start and on when we get to reviewing.
 # # And start with the acitons off.
 # download_off()
 
-
 # addHook("setupEditorButtons", editor_add_download_editing_button)
+# mw.note_download_action.setIcon(QIcon(os.path.join(icons_dir,
+#                                                    'download_note_audio.png')))
+#mw.create_notes_from_link_action.setShortcut(CREATE_NEW_NOTE_SHORTCUT)
+
+mw.edit_cambridge_submenu = QMenu(u"&Cambridge Dictionary", mw)
+mw.form.menuEdit.addSeparator()
+mw.form.menuEdit.addMenu(mw.edit_cambridge_submenu)
+
+mw.create_notes_from_link_action = QAction(mw)
+mw.create_notes_from_link_action.setText("Create new note fromm link")
+mw.create_notes_from_link_action.setToolTip("Fetch word definitions from provided link.")
+
+mw.create_notes_from_link_action.triggered.connect(ask_user_for_link)
+mw.edit_cambridge_submenu.addAction(mw.create_notes_from_link_action)

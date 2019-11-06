@@ -23,6 +23,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Cambridge.py" />
+    <Compile Include="dispatcher.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="download.py" />
     <Compile Include="downloader.py" />
     <Compile Include="download_entry.py" />
@@ -30,7 +33,6 @@
     <Compile Include="gui.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="runanki.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
