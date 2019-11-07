@@ -11,26 +11,142 @@ Anki2 add-on to download card's fields with audio from Cambridge Dictionary
 
 import os
 from PyQt5.QtGui import QIcon, QFont
-from PyQt5.QtWidgets import QAction, QMenu, QDialog, QVBoxLayout, QLabel, QLineEdit, QGridLayout, QDialogButtonBox, QCheckBox 
+from PyQt5.QtWidgets import QAction, QMenu, QDialog, QVBoxLayout, QLabel, QLineEdit, QGridLayout, QDialogButtonBox, QCheckBox, QMessageBox
 
 
 from aqt import mw
 from aqt.utils import tooltip
 from anki.hooks import addHook
 
+from .processors import processor
+from .Cambridge import CambDownloader
+
+CREATE_NEW_NOTE_SHORTCUT = "t"
+icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
+
 #from .download_entry import DownloadEntry, Action
 #from .get_fields import get_note_fields, get_side_fields
 #from .language import language_code_from_card, language_code_from_editor
-from .processors import processor
 #from .review_gui import review_entries
 #from .update_gui import update_data
-from .Cambridge import CambDownloader
-from .dispatcher import *
-CREATE_NEW_NOTE_SHORTCUT = "t"
 # DOWNLOAD_SIDE_SHORTCUT = "t"
 # DOWNLOAD_MANUAL_SHORTCUT = "Ctrl+t"
-icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
 # Place were we keep our megaphone icon.
+
+class LinkDialogue(QDialog):
+    """
+    A Dialog to let the user edit the texts or change the language.
+    """
+    def __init__(self, parent=None):
+        self.user_url = ''
+        self.word = ''
+        QDialog.__init__(self)
+        self.initUI()
+
+    def initUI(self):
+        u"""Build the dialog box."""
+
+        self.setWindowTitle(_(u'Anki – Download definitions'))
+        self.setWindowIcon(QIcon(":/icons/anki.png"))
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        edit_word_head = QLabel()
+
+        edit_word_head.setText(_('''<h4>Enter link for parsing</h4>'''))
+        bold_font = QFont()
+        bold_font.setBold(True)
+        edit_word_head.setFont(bold_font)
+        layout.addWidget(edit_word_head)
+        
+        self.link_editor = QLineEdit()
+        self.link_editor.placeholderText = 'Enter your link here'
+        layout.addWidget(self.link_editor)
+
+        dialog_buttons = QDialogButtonBox(self)
+        dialog_buttons.addButton(QDialogButtonBox.Cancel)
+        dialog_buttons.addButton(QDialogButtonBox.Ok)
+        dialog_buttons.accepted.connect(self.accepted)
+        dialog_buttons.rejected.connect(self.reject)
+        layout.addWidget(dialog_buttons)
+
+    def accepted(self):
+        self.user_url = self.link_editor.text()
+        QDialog.accept(self)
+
+class WordDefDialogue(QDialog):
+    """
+    A Dialog to let the user edit the texts or change the language.
+    """
+    def __init__(self,word_data):
+        self.word_data = word_data
+        QDialog.__init__(self)
+        self.initUI()
+
+    def initUI(self):
+        u"""Build the dialog box."""
+
+        self.setWindowTitle('some')
+        self.setWindowIcon(QIcon(":/icons/anki.png"))
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        for word_entry in self.word_data:
+            word_title = QLabel(word_entry['word_title'])
+            layout.addWidget(word_title)
+            word_gram = QLabel(word_entry['word_gram'])
+            layout.addWidget(word_gram)
+            for entry_meaning, entry_examples in word_entry['meanings'].items():
+                mean_checkbox = QCheckBox(entry_meaning)
+                layout.addWidget(mean_checkbox)
+
+        #edit_word_head.setText(_('''<h4>Enter link for parsing</h4>'''))
+        #bold_font = QFont()
+        #bold_font.setBold(True)
+        #edit_word_head.setFont(bold_font)
+        #layout.addWidget(edit_word_head)
+        
+        #link_editor = QLineEdit()
+        #link_editor.placeholderText = 'Enter your link here'
+        #layout.addWidget(link_editor)
+        #self.user_url = link_editor.text
+
+        dialog_buttons = QDialogButtonBox(self)
+        dialog_buttons.addButton(QDialogButtonBox.Cancel)
+        dialog_buttons.addButton(QDialogButtonBox.Ok)
+        dialog_buttons.accepted.connect(self.accept)
+        dialog_buttons.rejected.connect(self.reject)
+        layout.addWidget(dialog_buttons)
+
+        
+   
+def ask_user_for_link():
+    link_dialog = LinkDialogue(mw)
+    if link_dialog.exec_():
+        get_word_definitions_from_link(link_dialog.user_url)
+        
+
+def get_word_definitions_from_link(link):
+    if not link:
+        QMessageBox.warning(mw,'Link is not provided','Please, provide a link for you word or phrase.')
+        return
+
+    cd = CambDownloader()
+    cd.user_url = link
+    cd.get_word_data()
+    word_data = cd.word_data
+    sd = WordDefDialogue(word_data)
+    if not sd.exec_():
+        QMessageBox.information(mw,'What I got',str(word_data))
+    
+mw.edit_cambridge_submenu = QMenu(u"&Cambridge Dictionary", mw)
+mw.form.menuEdit.addSeparator()
+mw.form.menuEdit.addMenu(mw.edit_cambridge_submenu)
+
+mw.create_notes_from_link_action = QAction(mw)
+mw.create_notes_from_link_action.setText("Create new note fromm link")
+mw.create_notes_from_link_action.setToolTip("Fetch word definitions from provided link.")
+
+mw.create_notes_from_link_action.triggered.connect(ask_user_for_link)
+mw.edit_cambridge_submenu.addAction(mw.create_notes_from_link_action)
 
 
 #def do_download(note, field_data_list, language, hide_text=False):
@@ -190,81 +306,6 @@ icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
 # try:
 #     mw.edit_media_submenu.addSeparator()
 # except AttributeError:
-class LinkDialogue(QDialog):
-    """
-    A Dialog to let the user edit the texts or change the language.
-    """
-    def __init__(self):
-        self.user_url = ''
-        self.word = ''
-        QDialog.__init__(self)
-        self.initUI()
-
-    def initUI(self):
-        u"""Build the dialog box."""
-
-        self.setWindowTitle(_(u'Anki – Download definitions'))
-        self.setWindowIcon(QIcon(":/icons/anki.png"))
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-        edit_word_head = QLabel()
-
-        edit_word_head.setText(_('''<h4>Enter link for parsing</h4>'''))
-        bold_font = QFont()
-        bold_font.setBold(True)
-        edit_word_head.setFont(bold_font)
-        layout.addWidget(edit_word_head)
-        
-        self.link_editor = QLineEdit()
-        self.link_editor.placeholderText = 'Enter your link here'
-        layout.addWidget(self.link_editor)
-
-        dialog_buttons = QDialogButtonBox(self)
-        dialog_buttons.addButton(QDialogButtonBox.Cancel)
-        dialog_buttons.addButton(QDialogButtonBox.Ok)
-        dialog_buttons.accepted.connect(self.accept)
-        dialog_buttons.rejected.connect(self.reject)
-        layout.addWidget(dialog_buttons)
-
-class WordDefDialogue(QDialog):
-    """
-    A Dialog to let the user edit the texts or change the language.
-    """
-    def __init__(self):
-        self.word_data = []
-        self.word = ''
-        QDialog.__init__(self)
-        self.initUI()
-
-    def initUI(self):
-        u"""Build the dialog box."""
-
-        self.setWindowTitle(self.word)
-        self.setWindowIcon(QIcon(":/icons/anki.png"))
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-        for word_entry in self.word_data:
-            entry_checkbox = QCheckBox(word_entry.word_title)
-        layout.addWidget(entry_checkbox)
-
-        #edit_word_head.setText(_('''<h4>Enter link for parsing</h4>'''))
-        #bold_font = QFont()
-        #bold_font.setBold(True)
-        #edit_word_head.setFont(bold_font)
-        #layout.addWidget(edit_word_head)
-        
-        #link_editor = QLineEdit()
-        #link_editor.placeholderText = 'Enter your link here'
-        #layout.addWidget(link_editor)
-        #self.user_url = link_editor.text
-
-        dialog_buttons = QDialogButtonBox(self)
-        dialog_buttons.addButton(QDialogButtonBox.Cancel)
-        dialog_buttons.addButton(QDialogButtonBox.Ok)
-        dialog_buttons.accepted.connect(self.accept)
-        dialog_buttons.rejected.connect(self.reject)
-        layout.addWidget(dialog_buttons)
-
 
         # Now decide which help text to show.
         # First, decide if we have any split fields.
@@ -368,16 +409,13 @@ class WordDefDialogue(QDialog):
 #                    redit.setToolTip(ruby_tt_text)
 #        layout.addLayout(gf_layout)
 
-   
-def ask_user_for_link():
-    link_dialog = LinkDialogue()
-    if link_dialog.exec_():
-        word_data = get_word_definitions_from_link(link_dialog.link_editor.text)
-        if word_data:
-            word_select = WordDefDialogue()
-            word_select.word = '123'
-            word_select.word_data = word_data
-            word_select.exec_()
+
+
+        #if word_data:
+        #    word_select = WordDefDialogue()
+        #    word_select.word = '123'
+        #    word_select.word_data = word_data
+        #    word_select.exec_()
         #raise RuntimeError('User cancel')
 
 # mw.side_download_action = QAction(mw)
@@ -407,13 +445,3 @@ def ask_user_for_link():
 #                                                    'download_note_audio.png')))
 #mw.create_notes_from_link_action.setShortcut(CREATE_NEW_NOTE_SHORTCUT)
 
-mw.edit_cambridge_submenu = QMenu(u"&Cambridge Dictionary", mw)
-mw.form.menuEdit.addSeparator()
-mw.form.menuEdit.addMenu(mw.edit_cambridge_submenu)
-
-mw.create_notes_from_link_action = QAction(mw)
-mw.create_notes_from_link_action.setText("Create new note fromm link")
-mw.create_notes_from_link_action.setToolTip("Fetch word definitions from provided link.")
-
-mw.create_notes_from_link_action.triggered.connect(ask_user_for_link)
-mw.edit_cambridge_submenu.addAction(mw.create_notes_from_link_action)

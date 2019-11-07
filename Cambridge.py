@@ -23,23 +23,28 @@ class CambDownloader():
             Source=u"Cambridge Dictionary")
         self.base_url = 'https://dictionary.cambridge.org/'
         self.user_url = ''
+        self.word = ''
+        self.language = 'en'
 
-    def get_word_data(self,full_link = False):
+    def get_word_data(self):
 
-        self.word_data = []
         if not self.language.lower().startswith('en'):
             return
-        if not word:
-            return
         word = self.word.replace("'", "-")
+        if not word and not self.user_url:
+            return
+        
         # self.maybe_get_icon()
         # Do our parsing with BeautifulSoup
 
         # self.ws = word_soup
-        if full_link:
-            response = urllib.request.urlopen(self.user_url)
+        
+        if self.user_url:
+            req = urllib.request.Request(self.url + urllib.parse.quote(self.user_url.split('/')[-1]))
         else:
-            response = urllib.request.urlopen(self.url + urllib.parse.quote(word.encode('utf-8')))
+            req = urllib.request.Request(self.url + urllib.parse.quote(word.encode('utf-8')))
+        req.add_header("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36") 
+        response = urllib.request.urlopen(req)
         html_doc = response.read()
         word_soup = BeautifulSoup(html_doc, "html.parser")
 
@@ -79,6 +84,7 @@ class CambDownloader():
                     word_def["word_us_media"] = self.base_url + media_file_tag.text
             # Looping through words meanings definitions
             for html_pos_body in tag_entry.find_all(name='div', attrs={'class': 'pos-body'}):
+                word_def_and_example = []
                 cur_meaning = {}
                 for html_meaning in html_pos_body.find_all("div", class_=re.compile("pr\sdsense")):
                     # A meaning
@@ -98,8 +104,8 @@ class CambDownloader():
 
 
 #ad = CambDownloader()
-#ad.word_data = {"draw"}
+#ad.word = 'draw'
 #ad.language = 'en'
 
 #ad.get_word_data()
-#print(ad.word_data)
+
