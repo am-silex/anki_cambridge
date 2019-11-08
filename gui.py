@@ -50,13 +50,13 @@ class LinkDialogue(QDialog):
         self.setWindowIcon(QIcon(":/icons/anki.png"))
         layout = QVBoxLayout()
         self.setLayout(layout)
-        edit_word_head = QLabel()
+        self.edit_word_head = QLabel()
 
-        edit_word_head.setText(_('''<h4>Enter link for parsing</h4>'''))
+        self.edit_word_head.setText(_('''<h4>Enter link for parsing</h4>'''))
         bold_font = QFont()
         bold_font.setBold(True)
-        edit_word_head.setFont(bold_font)
-        layout.addWidget(edit_word_head)
+        self.edit_word_head.setFont(bold_font)
+        layout.addWidget(self.edit_word_head)
         
         self.link_editor = QLineEdit()
         self.link_editor.placeholderText = 'Enter your link here'
@@ -68,6 +68,7 @@ class LinkDialogue(QDialog):
         dialog_buttons.accepted.connect(self.accepted)
         dialog_buttons.rejected.connect(self.reject)
         layout.addWidget(dialog_buttons)
+        self.link_editor.setFocus()
 
     def accepted(self):
         self.user_url = self.link_editor.text()
