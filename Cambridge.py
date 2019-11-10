@@ -5,13 +5,9 @@ import urllib.request
 from abc import ABC
 from copy import copy
 from bs4 import BeautifulSoup
+from aqt.qt import QObject
 
-#from downloader import AudioDownloader
-#from field_data import FieldData
-# from download_entry import DownloadEntry
-
-
-class CambDownloader():
+class CDDownloader(QObject):
     """Download audio from Cambridge Dictionary."""
 
     def __init__(self):
@@ -26,7 +22,7 @@ class CambDownloader():
         self.word = ''
         self.language = 'en'
 
-    def get_word_data(self):
+    def get_word_defs(self):
 
         if not self.language.lower().startswith('en'):
             return
@@ -40,10 +36,13 @@ class CambDownloader():
         # self.ws = word_soup
         
         if self.user_url:
-            req = urllib.request.Request(self.url + urllib.parse.quote(self.user_url.split('/')[-1]))
+            req = urllib.request.Request(self.user_url)
         else:
             req = urllib.request.Request(self.url + urllib.parse.quote(word.encode('utf-8')))
-        req.add_header("User-Agent","Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36") 
+        #req.add_header("User-Agent","Python-urllib/3.7") 
+        #req.add_header('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8')
+        #req.add_header('Accept-Language', 'ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3')
+        #req.add_header('Accept-Encoding', 'gzip, deflate, br')
         response = urllib.request.urlopen(req)
         html_doc = response.read()
         word_soup = BeautifulSoup(html_doc, "html.parser")
@@ -101,7 +100,10 @@ class CambDownloader():
             word_def_list.append(word_def)
 
         self.word_data = word_def_list
+        if not self.word and self.user_url:
+            self.word = self.user_url.split('/')[-1]
 
+# This code for debugging purposes
 
 #ad = CambDownloader()
 #ad.word = 'draw'

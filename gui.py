@@ -6,12 +6,12 @@
 """
 Anki2 add-on to download card's fields with audio from Cambridge Dictionary
 
-
 """
 
 import os
 from PyQt5.QtGui import QIcon, QFont
-from PyQt5.QtWidgets import QAction, QMenu, QDialog, QVBoxLayout, QLabel, QLineEdit, QGridLayout, QDialogButtonBox, QCheckBox, QMessageBox
+from PyQt5.QtWidgets import * 
+#QAction, QMenu, QDialog, QVBoxLayout, QLabel, QLineEdit, QGridLayout, QDialogButtonBox, QCheckBox, QMessageBox
 
 
 from aqt import mw
@@ -19,10 +19,14 @@ from aqt.utils import tooltip
 from anki.hooks import addHook
 
 from .processors import processor
-from .Cambridge import CambDownloader
+from .Cambridge import CDDownloader
+
+from ._names import *
+from . import utils
 
 CREATE_NEW_NOTE_SHORTCUT = "t"
 icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
+
 
 #from .download_entry import DownloadEntry, Action
 #from .get_fields import get_note_fields, get_side_fields
@@ -40,6 +44,7 @@ class LinkDialogue(QDialog):
     def __init__(self, parent=None):
         self.user_url = ''
         self.word = ''
+        self.cd = CDDownloader
         QDialog.__init__(self)
         self.initUI()
 
@@ -65,40 +70,119 @@ class LinkDialogue(QDialog):
         dialog_buttons = QDialogButtonBox(self)
         dialog_buttons.addButton(QDialogButtonBox.Cancel)
         dialog_buttons.addButton(QDialogButtonBox.Ok)
-        dialog_buttons.accepted.connect(self.accepted)
+        dialog_buttons.accepted.connect(self.get_word_definitions_from_link)
         dialog_buttons.rejected.connect(self.reject)
         layout.addWidget(dialog_buttons)
         self.link_editor.setFocus()
 
-    def accepted(self):
+    def get_word_definitions_from_link(self):
+
         self.user_url = self.link_editor.text()
-        QDialog.accept(self)
+        #if not link:
+        #    QMessageBox.warning(mw,'Link is not provided','Please, provide a link for you word or phrase.')
+        #    return
+
+        #cd = CambDownloader()
+        #cd.user_url = link
+        #cd.get_word_data()
+        word = 'draw'
+        word_data = []
+        l1_word = {}
+        l1_word['word_title'] = 'draw'
+        l1_word['word_gram'] = 'verb'
+        l1_word['word_pro_uk'] = 'Br draw'
+        l1_word['word_uk_media'] = 'Br mp3'
+        l1_word['word_pro_us'] = 'US draw'
+        l1_word['word_us_media'] = 'US mp3'
+    
+        l2_word = {}
+        l2_meanings = {}
+        l2_meanings['to make a picture of something or someone with a pencil or pen:'] = ['Jonathan can draw very well.',
+                                                                                          'The children drew pictures of their families.',
+                                                                                          'Draw a line at the bottom of the page.']
+        l2_word['draw verb (PICTURE)'] = l2_meanings
+
+        l2_meanings = {}
+        l2_meanings['to take something out of a container or your pocket, especially a weapon:'] = ['Suddenly he drew a gun/knife and held it to my throat.']
+        l2_meanings['to cause a substance, especially blood, to come out of a body:'] = ['He bit me so hard that it drew blood.']
+        l2_word['draw verb (TAKE OUT)'] = l2_meanings
+        l1_word['meanings'] = l2_word
+        word_data.append(l1_word)
+
+        l1_word = {}
+        l1_word['word_title'] = 'draw'
+        l1_word['word_gram'] = 'noun'
+        l1_word['word_pro_uk'] = 'Br draw'
+        l1_word['word_uk_media'] = 'Br mp3'
+        l1_word['word_pro_us'] = 'US draw'
+        l1_word['word_us_media'] = 'US mp3'
+    
+        l2_word = {}
+        l2_meanings = {}
+        l2_meanings['someone or something that a lot of people are interested in:'] = ['We need someone at the event who''ll be a big draw and attract the paying public.']
+        l2_word['draw noun (ATTRACTION)'] = l2_meanings
+
+        l1_word['meanings'] = l2_word
+        word_data.append(l1_word)
+
+        sd = WordDefDialogue(word_data,word)
+        self.close()
+        sd.exec_()
 
 class WordDefDialogue(QDialog):
     """
     A Dialog to let the user edit the texts or change the language.
     """
-    def __init__(self,word_data):
+    def __init__(self,word_data,word):
         self.word_data = word_data
+        self.word = word
+        self.selected_defs = [] # list of selected defs (l1_word)
+        self.cd = CDDownloader()
         QDialog.__init__(self)
         self.initUI()
 
     def initUI(self):
         u"""Build the dialog box."""
 
-        self.setWindowTitle('some')
+        self.setWindowTitle(self.word)
         self.setWindowIcon(QIcon(":/icons/anki.png"))
         layout = QVBoxLayout()
-        self.setLayout(layout)
-        for word_entry in self.word_data:
-            word_title = QLabel(word_entry['word_title'])
-            layout.addWidget(word_title)
-            word_gram = QLabel(word_entry['word_gram'])
-            layout.addWidget(word_gram)
-            for entry_meaning, entry_examples in word_entry['meanings'].items():
-                mean_checkbox = QCheckBox(entry_meaning)
-                layout.addWidget(mean_checkbox)
-
+        self.setLayout(layout)   
+        # Looping through data structure 
+        for l1_word in self.word_data:
+            row = 0
+            gl = QGridLayout()
+            gr = QGroupBox()
+            gr.setLayout(gl)
+            word_title = QLabel('<h3>'+l1_word['word_title']+'</h3>')
+            gl.addWidget(word_title,row,0)
+            word_gram = QLabel('<h4>'+l1_word['word_gram']+'</h4>')
+            gl.addWidget(word_gram,row,1)
+            #Looping through top-level meaning
+            ck_it = 0
+            self.ck_dict = {}
+            for l2_meaning, l2_def_and_example in l1_word['meanings'].items():
+                row += 1
+                mean_checkbox = QCheckBox(l2_meaning)
+                #loopname = "ck{0}".format(ck_it)
+                mean_checkbox.l2_meaning = l2_meaning
+                #ck_dict[loopname] = mean_checkbox
+                #mean_checkbox.emit(SIGNAL("stateChanged"),mean_checkbox.l2_meaning)
+                #self.connect(mean_checkbox,SIGNAL("stateChanged"),self.toggle_def)
+                mean_checkbox.stateChanged.connect(self.toggle_def)
+                    #lambda: self.toggle_def(mean_checkbox.loopname))
+                ck_it += 1
+                gl.addWidget(mean_checkbox, row, 0,1,-1)
+                for l2_def in l2_def_and_example:
+                    row += 1
+                    l2_def_check = QLabel(l2_def)
+                    gl.addWidget(l2_def_check, row, 0,1,-1)
+                    for l2_examp in l2_def_and_example[l2_def]:
+                        row += 1
+                        l2_def_label = QLabel('<i>'+l2_examp+'</i>')
+                        l2_def_label.setIndent(10)
+                        gl.addWidget(l2_def_label, row, 0,1,-1)
+            layout.addWidget(gr)
         #edit_word_head.setText(_('''<h4>Enter link for parsing</h4>'''))
         #bold_font = QFont()
         #bold_font.setBold(True)
@@ -113,336 +197,30 @@ class WordDefDialogue(QDialog):
         dialog_buttons = QDialogButtonBox(self)
         dialog_buttons.addButton(QDialogButtonBox.Cancel)
         dialog_buttons.addButton(QDialogButtonBox.Ok)
-        dialog_buttons.accepted.connect(self.accept)
+        dialog_buttons.accepted.connect(self.create_selected_notes)
         dialog_buttons.rejected.connect(self.reject)
         layout.addWidget(dialog_buttons)
 
-        
-   
-def ask_user_for_link():
-    link_dialog = LinkDialogue(mw)
-    if link_dialog.exec_():
-        get_word_definitions_from_link(link_dialog.user_url)
-        
+    def toggle_def(self,state):
+        sender = self.sender()
+        l2_meaning  = sender.l2_meaning
+        if self.sender():
+            if l2_meaning in self.selected_defs:
+                self.selected_defs.remove(l2_meaning)
+            else:
+                self.selected_defs.append(l2_meaning)
 
-def get_word_definitions_from_link(link):
-    if not link:
-        QMessageBox.warning(mw,'Link is not provided','Please, provide a link for you word or phrase.')
-        return
+    def create_selected_notes(self):
+        a = 1
 
-    cd = CambDownloader()
-    cd.user_url = link
-    cd.get_word_data()
-    word_data = cd.word_data
-    sd = WordDefDialogue(word_data)
-    if not sd.exec_():
-        QMessageBox.information(mw,'What I got',str(word_data))
-    
-mw.edit_cambridge_submenu = QMenu(u"&Cambridge Dictionary", mw)
-mw.form.menuEdit.addSeparator()
-mw.form.menuEdit.addMenu(mw.edit_cambridge_submenu)
+    def set_model(self):
+        self.model = utils.prepare_model(mw.col, utils.fields, styles.model_css)
 
-mw.create_notes_from_link_action = QAction(mw)
-mw.create_notes_from_link_action.setText("Create new note fromm link")
-mw.create_notes_from_link_action.setToolTip("Fetch word definitions from provided link.")
+    def add_word():
+        """
+        Note is an SQLite object in Anki so you need
+        to fill it out inside the main thread
+        """
+        utils.add_word(word, self.model)
 
-mw.create_notes_from_link_action.triggered.connect(ask_user_for_link)
-mw.edit_cambridge_submenu.addAction(mw.create_notes_from_link_action)
-
-
-#def do_download(note, field_data_list, language, hide_text=False):
-#    """
-#    Download audio data.
-
-#    Go through the list of words and list of sites and download each
-#    word from each site.  Then call a function that asks the user what
-#    to do.
-#    """
-#    retrieved_entries = []
-#    for field_data in field_data_list:
-#        if field_data.empty:
-#            continue
-#        for dloader in downloaders:
-#            # Use a public variable to set the language.
-#            dloader.language = language
-#            try:
-#                # Make it easer inside the downloader.  If anything
-#                # goes wrong, don't catch, or raise whatever you want.
-#                dloader.download_files(field_data)
-#            except:
-#                # # Uncomment this raise while testing a new
-#                # # downloaders.  Also use the “For testing”
-#                # # downloaders list with your downloader in
-#                # # downloaders.__init__
-#                # raise
-#                continue
-#            retrieved_entries += dloader.downloads_list
-#    # Significantly changed the logic.  Put all entries in one
-#    # list, do stuff with that list of DownloadEntries.
-#    for entry in retrieved_entries:
-#        # Do the processing before the reviewing now.
-#        entry.process()
-#    try:
-#        retrieved_entries = review_entries(note, retrieved_entries, hide_text)
-#        # Now just the dialog, which sets the fields in the entries
-#    except ValueError as ve:
-#        tooltip(str(ve))
-#    except RuntimeError as rte:
-#        if 'cancel' in str(rte):
-#            for entry in retrieved_entries:
-#                entry.action = Action.Delete
-#        else:
-#            raise
-#    for entry in retrieved_entries:
-#        entry.dispatch(note)
-#    if any(entry.action == Action.Add for entry in retrieved_entries):
-#        note.flush()
-#        # We have to do different things here, for download during
-#        # review, we should reload the card and replay.  When we are in
-#        # the add dialog, we do a field update there.
-#        rnote = None
-#        try:
-#            rnote = mw.reviewer.card.note()
-#        except AttributeError:
-#            # Could not get the note of the reviewer's card.  Probably
-#            # not reviewing at all.
-#            return
-#        if note == rnote:
-#            # The note we have is the one we were reviewing, so,
-#            # reload and replay
-#            mw.reviewer.card.load()
-#            mw.reviewer.replayAudio()
-
-#def download_for_side():
-#    """
-#    Download audio for one side.
-
-#    Download audio for all audio fields on the currently visible card
-#    side.
-#    """
-#    card = mw.reviewer.card
-#    if not card:
-#        return
-#    note = card.note()
-#    field_data = get_side_fields(card, note)
-#    do_download(
-#        note, field_data, language_code_from_card(card), hide_text=True)
-
-#def download_for_note(ask_user=False, note=None, editor=None):
-#    """
-#    Download audio for all fields.
-
-#    Download audio for all fields of the note passed in or the current
-#    note.  When ask_user is true, show a dialog that lets the user
-#    modify these texts.
-#    """
-#    if not note:
-#        try:
-#            card = mw.reviewer.card
-#            note = card.note()
-#        except AttributeError:
-#            return
-#        language_code = language_code_from_card(card)
-#    else:
-#        language_code = language_code_from_editor(note, editor)
-#    field_data = get_note_fields(note)
-#    if not field_data:
-#        # Complain before we show the empty dialog.
-#        tooltip(u'Nothing to download.')
-#        return
-
-#    if ask_user:
-#        try:
-#            field_data, language_code = update_data(field_data, language_code)
-#        except RuntimeError as rte:
-#            if 'cancel' in str(rte):
-#                # User canceled.  No need for the "Nothing downloaded"
-#                # message.
-#                return
-#            else:
-#                # Don't know how to handle this after all
-#                raise
-#    do_download(note, field_data, language_code)
-
-#def download_manual():
-#    u"""Do the download with the dialog before we go."""
-#    download_for_note(ask_user=True)
-
-#def download_off():
-#    u"""Deactivate the download menus."""
-#    mw.note_download_action.setEnabled(False)
-#    mw.side_download_action.setEnabled(False)
-#    mw.manual_download_action.setEnabled(False)
-
-#def download_on():
-#    u"""Activate the download menus."""
-#    mw.note_download_action.setEnabled(True)
-#    mw.side_download_action.setEnabled(True)
-#    mw.manual_download_action.setEnabled(True)
-
-#def editor_download_editing(self):
-#    u"""Do the download when we are in the note editor."""
-#    self.saveNow()
-#    download_for_note(ask_user=True, note=self.note, editor=self)
-#    # Fix for issue #10.
-#    self.stealFocus = True
-#    self.loadNote()
-#    self.stealFocus = False
-
-#def editor_add_download_editing_button(self):
-#    """Add the download button to the editor"""
-#    dl_button = self._addButton(
-#        "download_audio",
-#        lambda self=self: editor_download_editing(self),
-#        tip=u"Download audio…")
-#    dl_button.setIcon(
-#        QIcon(os.path.join(icons_dir, 'download_note_audio.png')))
-
-
-# Either reuse an edit-media sub-menu created by another add-on
-# (probably the mhwave (ex sweep) add-on by Y.T.) or create that
-# menu.  When we already have that menu, add a separator, otherwise
-# create that menu.
-
-# try:
-#     mw.edit_media_submenu.addSeparator()
-# except AttributeError:
-
-        # Now decide which help text to show.
-        # First, decide if we have any split fields.
-        #if any(f_data.split for f_data in self.field_data_list):
-        #    if self.language_code and self.language_code.startswith('ja'):
-        #        # Japanese
-        #        edit_word_head.setText(kanji_et)
-        #    else:
-        #        # Chinese should not happen at the moment
-        #        edit_word_head.setText(base_et)
-        #else:
-        #    edit_word_head.setText(single_et)
-
-
-#        self.create_data_rows(layout)
-#        line = QFrame(self)
-#        line.setFrameShape(QFrame.HLine)
-#        line.setFrameShadow(QFrame.Sunken)
-#        layout.addWidget(line)
-#        lcode_head = QLabel(_('''<h4>Language code</h4>'''))
-#        layout.addWidget(lcode_head)
-#        lang_hlayout = QHBoxLayout()
-#        lc_label = QLabel(_(u'Language code:'), self)
-#        lang_hlayout.addWidget(lc_label)
-#        lc_label.setToolTip(language_help)
-#        self.language_code_lineedit = QLineEdit(self)
-#        try:
-#            self.language_code_lineedit.setText(self.language_code)
-#        except:
-#            self.language_code_lineedit.setText(default_audio_language_code)
-#        lang_hlayout.addWidget(self.language_code_lineedit)
-#        self.language_code_lineedit.setToolTip(language_help)
-#        layout.addLayout(lang_hlayout)
-#        dialog_buttons = QDialogButtonBox(self)
-#        dialog_buttons.addButton(QDialogButtonBox.Cancel)
-#        dialog_buttons.addButton(QDialogButtonBox.Ok)
-#        dialog_buttons.accepted.connect(self.accept)
-#        dialog_buttons.rejected.connect(self.reject)
-#        layout.addWidget(dialog_buttons)
-
-#    def create_data_rows(self, layout):
-#        u"""Build one line of the dialog box."""
-#        gf_layout = QGridLayout()
-#        for num, field_data in enumerate(self.field_data_list):
-#            # We create all three QTextEdits for each item and hide
-#            # some according to field_data.split.
-#            label = QLabel(u'{0}:'.format(field_data.word_field_name))
-#            label.setToolTip(_(u'Source of the request text'))
-#            gf_layout.addWidget(label, num, 0)
-#            ledit = QLineEdit(field_data.word)
-#            self.word_lineedits.append(ledit)
-#            try:
-#                bedit = QLineEdit(field_data.kanji)
-#            except AttributeError:
-#                # Happens when FieldData is not a
-#                # JapaneseFieldData. LBYL would be to use
-#                # field_data.split
-#                bedit = QLineEdit('')
-#            self.kanji_lineedits.append(bedit)
-#            try:
-#                redit = QLineEdit(field_data.kana)
-#            except AttributeError:
-#                # dto.
-#                redit = QLineEdit('')
-#            self.kana_lineedits.append(redit)
-#            if not field_data.split:
-#                gf_layout.addWidget(ledit, num, 1, 1, 2)
-#                ledit.setToolTip(
-#                    _(u'''<h4>Text of the request.</h4>
-#<p>Edit this as appropriate.  Clear it to not download anything for
-#this line.</p>'''))
-#                bedit.hide()
-#                redit.hide()
-#            else:
-#                ledit.hide()
-#                gf_layout.addWidget(bedit, num, 1)
-#                kanji_tt_text = _(u'''\
-#<h4>Kanji of the request.</h4>
-#<p>Edit this as appropriate.  Clear this to not download anything for
-#this line.  For pure kana words, enter (or keep) the kana
-#here.</p>''')
-#                base_tt_text = _(u'''\
-#<h4>Expression of the request.</h4>
-#<p>Edit this as appropriate. Clear this to not download anything for
-#this line.</p>''')
-#                # A bit C-ish. language_code may be None.
-#                if self.language_code and self.language_code.startswith('ja'):
-#                    bedit.setToolTip(kanji_tt_text)
-#                else:
-#                    bedit.setToolTip(base_tt_text)
-#                gf_layout.addWidget(redit, num, 2)
-
-#                kana_tt_text = _(u'''<h4>Kana of the request.</h4>
-#<p>Edit this as appropriate.  For pure kana words, enter (or keep) the
-#kana here or clear this field.</p>''')
-#                ruby_tt_text = _(u'''<h4>Reading (ruby) of the request.</h4>
-#<p>Edit this as appropriate.</p>''')
-#                if self.language_code and self.language_code.startswith('ja'):
-#                    redit.setToolTip(kana_tt_text)
-#                else:
-#                    redit.setToolTip(ruby_tt_text)
-#        layout.addLayout(gf_layout)
-
-
-
-        #if word_data:
-        #    word_select = WordDefDialogue()
-        #    word_select.word = '123'
-        #    word_select.word_data = word_data
-        #    word_select.exec_()
-        #raise RuntimeError('User cancel')
-
-# mw.side_download_action = QAction(mw)
-# mw.side_download_action.setText(u"Side audio")
-# mw.side_download_action.setIcon(
-#     QIcon(os.path.join(icons_dir, 'download_side_audio.png')))
-# mw.side_download_action.setToolTip(
-#     "Download audio for audio fields currently visible.")
-# mw.side_download_action.setShortcut(DOWNLOAD_SIDE_SHORTCUT)
-# mw.side_download_action.triggered.connect(download_for_side)
-#
-# mw.manual_download_action = QAction(mw)
-# mw.manual_download_action.setText(u"Manual audio")
-# mw.manual_download_action.setIcon(
-#     QIcon(os.path.join(icons_dir, 'download_audio_manual.png')))
-# mw.manual_download_action.setToolTip(
-#     "Download audio, editing the information first.")
-# mw.manual_download_action.setShortcut(DOWNLOAD_MANUAL_SHORTCUT)
-# mw.manual_download_action.triggered.connect(download_manual)
-
-# Todo: switch off at start and on when we get to reviewing.
-# # And start with the acitons off.
-# download_off()
-
-# addHook("setupEditorButtons", editor_add_download_editing_button)
-# mw.note_download_action.setIcon(QIcon(os.path.join(icons_dir,
-#                                                    'download_note_audio.png')))
-#mw.create_notes_from_link_action.setShortcut(CREATE_NEW_NOTE_SHORTCUT)
 

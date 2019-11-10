@@ -13,5 +13,5 @@ __version__ = "0.0.1"
 
 #from . import conflanguage
 #from . import download
-from . import gui
+from . import main
 #from . import model
