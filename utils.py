@@ -74,10 +74,10 @@ def create_new_model(collection, fields, model_css):
 
 
 def is_model_exist(collection, fields):
-    name_exist = 'LinguaLeo_model' in collection.models.allNames()
+    name_exist = 'Standard with audio fields' in collection.models.allNames()
     if name_exist:
         fields_ok = collection.models.fieldNames(collection.models.byName(
-                                                'LinguaLeo_model')) == fields
+                                                'Standard with audio fields')) == fields
     else:
         fields_ok = False
     return name_exist and fields_ok

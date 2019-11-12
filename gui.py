@@ -137,6 +137,7 @@ class WordDefDialogue(QDialog):
         self.word_data = word_data
         self.word = word
         self.selected_defs = [] # list of selected defs (l1_word)
+        self.col = 
         self.cd = CDDownloader()
         QDialog.__init__(self)
         self.initUI()
@@ -211,7 +212,10 @@ class WordDefDialogue(QDialog):
                 self.selected_defs.append(l2_meaning)
 
     def create_selected_notes(self):
-        a = 1
+        is_model_exist()
+        for sel_def in self.selected_defs:
+            if self.word_data[sel_def]:
+
 
     def set_model(self):
         self.model = utils.prepare_model(mw.col, utils.fields, styles.model_css)
