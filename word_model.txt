@@ -1,0 +1,16 @@
+word_data - list (array)
+	l1_word - dict
+		- word_title
+        - word_gram
+        - word_pro_uk
+        - word_uk_media - binary
+        - word_pro_us
+        - word_us_media - binary
+		- word_meanings - list (array)
+			- l2_meaning - dict
+				- general_meaning - key
+				- specific_meaning - value - list (array)
+					- sentence 1
+					- sentence 2
+					- sentence n
+			

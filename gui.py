@@ -22,7 +22,7 @@ from .processors import processor
 from .Cambridge import CDDownloader
 
 from ._names import *
-from . import utils
+from .utils import *
 
 CREATE_NEW_NOTE_SHORTCUT = "t"
 icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
@@ -137,8 +137,8 @@ class WordDefDialogue(QDialog):
         self.word_data = word_data
         self.word = word
         self.selected_defs = [] # list of selected defs (l1_word)
-        self.col = 
         self.cd = CDDownloader()
+        self.set_model()
         QDialog.__init__(self)
         self.initUI()
 
@@ -165,13 +165,8 @@ class WordDefDialogue(QDialog):
             for l2_meaning, l2_def_and_example in l1_word['meanings'].items():
                 row += 1
                 mean_checkbox = QCheckBox(l2_meaning)
-                #loopname = "ck{0}".format(ck_it)
                 mean_checkbox.l2_meaning = l2_meaning
-                #ck_dict[loopname] = mean_checkbox
-                #mean_checkbox.emit(SIGNAL("stateChanged"),mean_checkbox.l2_meaning)
-                #self.connect(mean_checkbox,SIGNAL("stateChanged"),self.toggle_def)
                 mean_checkbox.stateChanged.connect(self.toggle_def)
-                    #lambda: self.toggle_def(mean_checkbox.loopname))
                 ck_it += 1
                 gl.addWidget(mean_checkbox, row, 0,1,-1)
                 for l2_def in l2_def_and_example:
@@ -212,19 +207,60 @@ class WordDefDialogue(QDialog):
                 self.selected_defs.append(l2_meaning)
 
     def create_selected_notes(self):
-        is_model_exist()
-        for sel_def in self.selected_defs:
-            if self.word_data[sel_def]:
 
-
+        word_to_add = self.word_data
+        for next_def in self.selected_defs:
+            for l1_word in self.word_data:
+                for l2_key, l2_value in l1_word['meanings'].items():
+                    if l2_key == next_def:
+                        for l3_specific_def, l3_examples in l2_value.items():
+                            word_to_save = {}
+                            word_to_save['word_title']      = l1_word['word_title']
+                            word_to_save['word_gram']       = l1_word['word_gram']
+                            word_to_save['word_pro_uk']     = l1_word['word_pro_uk']
+                            word_to_save['word_uk_media']   = l1_word['word_uk_media']
+                            word_to_save['word_pro_us']     = l1_word['word_pro_us']
+                            word_to_save['word_us_media']   = l1_word['word_us_media']
+                            word_to_save['word_general']    = l2_key
+                            word_to_save['word_specific']   = l3_specific_def
+                            word_to_save['word_examples']   = list(l3_examples)
+                            self.add_note(word_to_save)
+                            #QMessageBox.information(mw,'Word added',str(word_to_save))
+        #for sel_def in self.selected_defs:
+        #    if self.word_data[sel_def]:
+        self.close()
+        
+       
     def set_model(self):
-        self.model = utils.prepare_model(mw.col, utils.fields, styles.model_css)
+        self.model = prepare_model(mw.col, fields, styles.model_css)
 
-    def add_word():
+    def add_note(self, word_to_add):
         """
         Note is an SQLite object in Anki so you need
         to fill it out inside the main thread
+
+        'word_title'
+        'word_gram'
+        'word_pro_uk'
+        'word_uk_media'
+        'word_pro_us'
+        'word_us_media'
+        'word_general'
+        'word_specific'
+        'word_examples'
+        
         """
-        utils.add_word(word, self.model)
+
+        word = {}
+        word['Word'] = word_to_add['word_title']
+        word['Grammar'] = word_to_add['word_gram']
+        word['Pronunciation'] = word_to_add['word_pro_uk'] +' '+ word_to_add['word_pro_us']
+        word['Meaning'] = word_to_add['word_general']
+        word['Definition'] = word_to_add['word_specific']
+        word['Examples'] = word_to_add['word_examples']
+        word['Audio'] = None
+        word['Picture'] = None
+
+        add_word(word, self.model)
 
 

@@ -11,39 +11,51 @@ model_css = '''
         font-style: italic;
     }'''
 
-en_question = """
-    <strong>{{en}}</strong>
-    <br><br>
-    {{transcription}}
-    <br><br>
-    {{picture_name}}
-    <br><br>
-    {{sound_name}}
+std_word = """
+    <h3 style="text-align: center;">{{Word}}</h3>
+    <blockquote>
+    <div style="text-align: center;">{{Grammar}}</div>
+    <div style="text-align: center;">{{Pronunciation}}</div>
+    </blockquote>
+    <div style="text-align: center;">{{Meaning}}</div>
+    <br>
+    <div style="text-align: center;">{{Examples}}</div>
     """
 
-en_answer = """
-    {{FrontSide}}
-    <hr id=answer>
-    <font color="#0000ff">{{ru}}</font>
-    <br><br>
-    <em>{{context}}</em>
+std_word_def = """
+    <h3 style="text-align: center;">{{Word}}</h3>
+    <blockquote>
+    <div style="text-align: center;">{{Grammar}}</div>
+    <div style="text-align: center;">{{Pronunciation}}</div>
+    </blockquote>
+    <div style="text-align: center;">{{Meaning}}</div>
+    <br>
+    <div style="text-align: center;">{{Definition}}</div>
     """
 
-ru_question = """
-    {{ru}}
-    <br><br>
-    {{picture_name}}
-    <br><br>
+std_def = """
+    <div style="text-align: center;">{{Definition}}</div>
     """
 
-ru_answer = """
-    {{FrontSide}}
-    <hr id=answer>
-    {{en}}
-    <br>
-    {{transcription}}
-    <br>
-    {{sound_name}}
-    <br>
-    <em>{{context}}</em>
+std_def_sound = """
+    <div style="text-align: center;">{{Definition}}</div>
+    <div style="text-align: center;">{{Audio}}</div>
     """
+
+std_word_sound = """
+    <h3 style="text-align: center;">{{Word}}</h3>
+    <blockquote>
+    <div style="text-align: center;">{{Grammar}}</div>
+    <div style="text-align: center;">{{Pronunciation}}</div>
+    </blockquote>
+    <div style="text-align: center;">{{Meaning}}</div>
+    <br>
+    <div style="text-align: center;">{{Examples}}</div>
+    <br>
+    <div style="text-align: center;">{{Audio}}</div>
+    """
+
+std_sound = """
+    <div style="text-align: center;">Listen.{{Audio}}</div>
+    """
+    

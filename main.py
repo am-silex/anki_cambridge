@@ -9,13 +9,13 @@ from aqt import mw
 from aqt.qt import QAction, QMenu
 from aqt.utils import showInfo
 
-from . import gui
+from .gui import *
 from ._names import *
 
 
 
 def ask_user_for_link():
-    window = gui.LinkDialogue()
+    window = LinkDialogue()
     setattr(mw, LINK_DLG_NAME, window)
     window.exec_()
     
@@ -45,3 +45,9 @@ mw.create_notes_from_link_action.setToolTip("Fetch word definitions from provide
 
 mw.create_notes_from_link_action.triggered.connect(ask_user_for_link)
 mw.edit_cambridge_submenu.addAction(mw.create_notes_from_link_action)
+
+#mw.test_create_utils = QAction(mw)
+#mw.test_create_utils.setText("Test: create note (utils)")
+##mw.test_create_utils.setToolTip("Fetch word definitions from provided link.")
+#mw.test_create_utils.triggered.connect(create_selected_notes)
+#mw.edit_cambridge_submenu.addAction(mw.test_create_utils)
