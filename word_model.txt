@@ -14,3 +14,11 @@ word_data - list (array)
 					- sentence 2
 					- sentence n
 			
+
+
+			'pr dsense '
+
+file_entry
+	- base_name
+	- file_extension
+	- file_path

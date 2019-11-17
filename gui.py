@@ -44,7 +44,6 @@ class LinkDialogue(QDialog):
     def __init__(self, parent=None):
         self.user_url = ''
         self.word = ''
-        self.cd = CDDownloader
         QDialog.__init__(self)
         self.initUI()
 
@@ -78,56 +77,18 @@ class LinkDialogue(QDialog):
     def get_word_definitions_from_link(self):
 
         self.user_url = self.link_editor.text()
-        #if not link:
-        #    QMessageBox.warning(mw,'Link is not provided','Please, provide a link for you word or phrase.')
-        #    return
+        if not self.user_url:
+            QMessageBox.warning(mw,'Link is not provided','Please, provide a link for you word or phrase.')
+            return
 
-        #cd = CambDownloader()
-        #cd.user_url = link
-        #cd.get_word_data()
-        word = 'draw'
-        word_data = []
-        l1_word = {}
-        l1_word['word_title'] = 'draw'
-        l1_word['word_gram'] = 'verb'
-        l1_word['word_pro_uk'] = 'Br draw'
-        l1_word['word_uk_media'] = 'Br mp3'
-        l1_word['word_pro_us'] = 'US draw'
-        l1_word['word_us_media'] = 'US mp3'
-    
-        l2_word = {}
-        l2_meanings = {}
-        l2_meanings['to make a picture of something or someone with a pencil or pen:'] = ['Jonathan can draw very well.',
-                                                                                          'The children drew pictures of their families.',
-                                                                                          'Draw a line at the bottom of the page.']
-        l2_word['draw verb (PICTURE)'] = l2_meanings
-
-        l2_meanings = {}
-        l2_meanings['to take something out of a container or your pocket, especially a weapon:'] = ['Suddenly he drew a gun/knife and held it to my throat.']
-        l2_meanings['to cause a substance, especially blood, to come out of a body:'] = ['He bit me so hard that it drew blood.']
-        l2_word['draw verb (TAKE OUT)'] = l2_meanings
-        l1_word['meanings'] = l2_word
-        word_data.append(l1_word)
-
-        l1_word = {}
-        l1_word['word_title'] = 'draw'
-        l1_word['word_gram'] = 'noun'
-        l1_word['word_pro_uk'] = 'Br draw'
-        l1_word['word_uk_media'] = 'Br mp3'
-        l1_word['word_pro_us'] = 'US draw'
-        l1_word['word_us_media'] = 'US mp3'
-    
-        l2_word = {}
-        l2_meanings = {}
-        l2_meanings['someone or something that a lot of people are interested in:'] = ['We need someone at the event who''ll be a big draw and attract the paying public.']
-        l2_word['draw noun (ATTRACTION)'] = l2_meanings
-
-        l1_word['meanings'] = l2_word
-        word_data.append(l1_word)
-
-        sd = WordDefDialogue(word_data,word)
-        self.close()
-        sd.exec_()
+        downloader = mw.cddownloader
+        downloader.user_url = self.user_url
+        downloader.get_word_defs()
+        
+        if downloader.word_data:
+            sd = WordDefDialogue(downloader.word_data,downloader.word)
+            self.close()
+            sd.exec_()
 
 class WordDefDialogue(QDialog):
     """
@@ -137,10 +98,10 @@ class WordDefDialogue(QDialog):
         self.word_data = word_data
         self.word = word
         self.selected_defs = [] # list of selected defs (l1_word)
-        self.cd = CDDownloader()
         self.set_model()
         QDialog.__init__(self)
         self.initUI()
+
 
     def initUI(self):
         u"""Build the dialog box."""
@@ -169,26 +130,16 @@ class WordDefDialogue(QDialog):
                 mean_checkbox.stateChanged.connect(self.toggle_def)
                 ck_it += 1
                 gl.addWidget(mean_checkbox, row, 0,1,-1)
-                for l2_def in l2_def_and_example:
-                    row += 1
-                    l2_def_check = QLabel(l2_def)
-                    gl.addWidget(l2_def_check, row, 0,1,-1)
-                    for l2_examp in l2_def_and_example[l2_def]:
-                        row += 1
-                        l2_def_label = QLabel('<i>'+l2_examp+'</i>')
-                        l2_def_label.setIndent(10)
-                        gl.addWidget(l2_def_label, row, 0,1,-1)
+                #for l2_def in l2_def_and_example:
+                #    row += 1
+                #    l2_def_check = QLabel(l2_def)
+                #    gl.addWidget(l2_def_check, row, 0,1,-1)
+                    #for l2_examp in l2_def_and_example[l2_def]:
+                    #    row += 1
+                    #    l2_def_label = QLabel('<i>'+l2_examp+'</i>')
+                    #    l2_def_label.setIndent(10)
+                    #    gl.addWidget(l2_def_label, row, 0,1,-1)
             layout.addWidget(gr)
-        #edit_word_head.setText(_('''<h4>Enter link for parsing</h4>'''))
-        #bold_font = QFont()
-        #bold_font.setBold(True)
-        #edit_word_head.setFont(bold_font)
-        #layout.addWidget(edit_word_head)
-        
-        #link_editor = QLineEdit()
-        #link_editor.placeholderText = 'Enter your link here'
-        #layout.addWidget(link_editor)
-        #self.user_url = link_editor.text
 
         dialog_buttons = QDialogButtonBox(self)
         dialog_buttons.addButton(QDialogButtonBox.Cancel)
@@ -196,6 +147,7 @@ class WordDefDialogue(QDialog):
         dialog_buttons.accepted.connect(self.create_selected_notes)
         dialog_buttons.rejected.connect(self.reject)
         layout.addWidget(dialog_buttons)
+
 
     def toggle_def(self,state):
         sender = self.sender()
@@ -206,7 +158,15 @@ class WordDefDialogue(QDialog):
             else:
                 self.selected_defs.append(l2_meaning)
 
+
     def create_selected_notes(self):
+
+        if not self.selected_defs:
+            mw.cddownloader.clean_up()
+            self.word_data = None
+            self.word = None
+            self.selected_defs = [] # list of selected defs (l1_word)
+            return
 
         word_to_add = self.word_data
         for next_def in self.selected_defs:
@@ -223,34 +183,26 @@ class WordDefDialogue(QDialog):
                             word_to_save['word_us_media']   = l1_word['word_us_media']
                             word_to_save['word_general']    = l2_key
                             word_to_save['word_specific']   = l3_specific_def
-                            word_to_save['word_examples']   = list(l3_examples)
+                            word_to_save['word_examples']   = "<br> ".join(l3_examples)
+                            word_to_save['word_image']      = l1_word['word_image']
                             self.add_note(word_to_save)
-                            #QMessageBox.information(mw,'Word added',str(word_to_save))
+                            
         #for sel_def in self.selected_defs:
         #    if self.word_data[sel_def]:
+        mw.cddownloader.clean_up()
         self.close()
         
        
     def set_model(self):
         self.model = prepare_model(mw.col, fields, styles.model_css)
 
+
     def add_note(self, word_to_add):
         """
         Note is an SQLite object in Anki so you need
         to fill it out inside the main thread
 
-        'word_title'
-        'word_gram'
-        'word_pro_uk'
-        'word_uk_media'
-        'word_pro_us'
-        'word_us_media'
-        'word_general'
-        'word_specific'
-        'word_examples'
-        
         """
-
         word = {}
         word['Word'] = word_to_add['word_title']
         word['Grammar'] = word_to_add['word_gram']
@@ -258,8 +210,8 @@ class WordDefDialogue(QDialog):
         word['Meaning'] = word_to_add['word_general']
         word['Definition'] = word_to_add['word_specific']
         word['Examples'] = word_to_add['word_examples']
-        word['Audio'] = None
-        word['Picture'] = None
+        word['Sounds'] = [word_to_add['word_uk_media'],word_to_add['word_us_media']]
+        word['Picture'] = word_to_add['word_image']
 
         add_word(word, self.model)
 

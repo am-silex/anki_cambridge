@@ -36,6 +36,7 @@
     <Compile Include="main.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="mediafile_utils.py" />
     <Compile Include="styles.py">
       <SubType>Code</SubType>
     </Compile>

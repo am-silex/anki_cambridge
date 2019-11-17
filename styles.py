@@ -19,7 +19,7 @@ std_word = """
     </blockquote>
     <div style="text-align: center;">{{Meaning}}</div>
     <br>
-    <div style="text-align: center;">{{Examples}}</div>
+    <div style="text-align: center; font-style: italic;">{{Examples}}</div>
     """
 
 std_word_def = """
@@ -50,7 +50,7 @@ std_word_sound = """
     </blockquote>
     <div style="text-align: center;">{{Meaning}}</div>
     <br>
-    <div style="text-align: center;">{{Examples}}</div>
+    <div style="text-align: center;font-style: italic;">{{Examples}}</div>
     <br>
     <div style="text-align: center;">{{Audio}}</div>
     """

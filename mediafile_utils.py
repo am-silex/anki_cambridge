@@ -21,6 +21,12 @@ from aqt import mw
 from anki.utils import isMac, stripHTML
 
 
+class dl_entry():
+    def __init__(self,abspath,base_name):
+        self.base_name      = base_name
+        self.file_extension = os.path.splitext(abspath)[1].strip()
+        self.file_path      = os.path.abspath(abspath)
+
 def free_media_name(base, end):
     u"""Return a useful media name
 
@@ -82,3 +88,8 @@ def unmunge_to_mediafile(dl_entry):
         dl_entry.base_name, dl_entry.file_extension)
     shutil.move(dl_entry.file_path, media_path)
     return media_file_name
+
+
+def get_file_entry(file,base_name):
+    f_entry = dl_entry(file,base_name)
+    return f_entry

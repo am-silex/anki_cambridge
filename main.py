@@ -12,7 +12,7 @@ from aqt.utils import showInfo
 from .gui import *
 from ._names import *
 
-
+from .Cambridge import CDDownloader
 
 def ask_user_for_link():
     window = LinkDialogue()
@@ -45,6 +45,8 @@ mw.create_notes_from_link_action.setToolTip("Fetch word definitions from provide
 
 mw.create_notes_from_link_action.triggered.connect(ask_user_for_link)
 mw.edit_cambridge_submenu.addAction(mw.create_notes_from_link_action)
+
+mw.cddownloader = CDDownloader()
 
 #mw.test_create_utils = QAction(mw)
 #mw.test_create_utils.setText("Test: create note (utils)")

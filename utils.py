@@ -9,6 +9,9 @@ from anki import notes
 
 from . import styles
 from ._names import *
+from .mediafile_utils import *
+
+from PyQt5.QtWidgets import QMessageBox
 
 
 fields = ['Word','Examples','Definition','Audio','Picture','Pronunciation','Grammar','Meaning']
@@ -21,7 +24,13 @@ def fill_note(word, note):
     note['Pronunciation'] = word.get('Pronunciation') if word.get('Pronunciation') else 'Pronunciation is absent'
     note['Grammar'] = word.get('Grammar') if word.get('Grammar') else 'Grammar is absent'
     note['Meaning'] = word.get('Meaning') if word.get('Meaning') else 'Meaning is absent'
-    #picture_name = word.get('picture').split('/')[-1] if word.get('picture') else ''
+    note['Picture'] = word.get('Picture') if word.get('Picture') else ''
+    audio_field = ''
+    for file in word['Sounds']:
+        f_entry = get_file_entry(file,note['Word'])
+        audio_field = audio_field + '[sound:' + unmunge_to_mediafile(f_entry)+'] '
+    note['Audio'] = audio_field
+    picture_name = word.get('Picture').split('/')[-1] if word.get('Picture') else ''
     #if is_old_api:
     #    # User's choice translation has index 0, then come translations sorted by votes (higher to lower)
     #    translations = word.get('translations')
@@ -40,8 +49,6 @@ def fill_note(word, note):
     ##  and get it differently, since with API 1.0.1 it is not possible
     ##  to get context at the time of getting list of words
 
-    #if word.get('transcription'):
-    #    note['transcription'] = '[' + word['transcription'] + ']'
     #sound_url = word.get('pronunciation')
     #if sound_url:
     #    sound_name = sound_url.split('/')[-1]
@@ -57,6 +64,7 @@ def add_word(word, model):
     collection = mw.col
     note = notes.Note(collection, model)
     note = fill_note(word, note)
+    
     # TODO: Rewrite to use is_duplicate()
             #word_value = word.get('wordValue') if word.get('wordValue') else 'NO_WORD_VALUE'
             #dupes = collection.findDupes("en", word_value)
@@ -100,7 +108,6 @@ def create_templates(collection):
     template_Sound['afmt'] = styles.std_word_def
     return (template_Recognition, template_Recall, template_Sound)
 
-
 def create_new_model(collection, fields, model_css):
     model = collection.models.new(CAMBRIDGE_MODEL)
     model['tags'].append("Cambridge")
@@ -115,7 +122,6 @@ def create_new_model(collection, fields, model_css):
     collection.models.update(model)
     return model
 
-
 def is_model_exist(collection, fields):
     name_exist = CAMBRIDGE_MODEL in collection.models.allNames()
     if name_exist:
@@ -124,7 +130,6 @@ def is_model_exist(collection, fields):
     else:
         fields_ok = False
     return name_exist and fields_ok
-
 
 def prepare_model(collection, fields, model_css):
     """
@@ -148,3 +153,16 @@ def get_cambridge_model(collection):
     """
     return collection.models.byName(CAMBRIDGE_MODEL)
 
+def is_valid_ascii(url):
+    """
+    Check an url if it is a valid ascii string
+    After the LinguaLeo update some images
+    have broken links with cyrillic characters
+    """
+    if url == '':
+        return True
+    try:
+        url.encode('ascii')
+    except:
+        return False
+    return True
