@@ -24,6 +24,7 @@ from .Cambridge import CDDownloader
 from ._names import *
 from .utils import *
 
+#TODO: Add shortkey for quick inserting new links
 CREATE_NEW_NOTE_SHORTCUT = "t"
 icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
 
