@@ -128,10 +128,11 @@ class CDDownloader(QObject):
                 else:
                     l1_word['word_image'] = ''
                 l2_word = {}
+                suffix = 1
                 #Looping through word general definition - like 'draw verb (PICTURE)'
                 for html_l2_tag in tag_entry.find_all(name='div', attrs={'class': 'pos-body'}):
                     # Looping through words specific definitions - l2_meaning (def & examples)
-                    for html_pos_body in tag_entry.find_all(attrs={'class': 'pr dsense','class': 'pr dsense '}):
+                    for html_pos_body in html_l2_tag.find_all(attrs={'class': 'pr dsense','class': 'pr dsense '}):
                         tag_l2_word_key = html_pos_body.find(attrs={'class': 'dsense_h'})
                         if not tag_l2_word_key:
                             continue
@@ -154,6 +155,30 @@ class CDDownloader(QObject):
                                     examples.append(self.prettify_string(tag_examples.text))
                             l2_meaning[specific_m] = examples
                         l2_word[general_m] = l2_meaning
+                       
+                    for html_pos_body in html_l2_tag.find_all(attrs={'class': 'pr dsense dsense-noh','class': 'pr dsense dsense-noh '}):
+                        
+                        general_m = 'word' + str(suffix)
+                        l2_word[general_m] = None
+                        l2_meaning_key = {}
+                        l2_meaning_examples = []
+                        l2_meaning = {}
+                        for html_meaning in html_pos_body.find_all(name="div", attrs={'class':'def-block ddef_block','class':'def-block ddef_block '}):
+                            tag_l2_meaning = html_meaning.find("div", attrs={'class':'ddef_h'})
+                            if not tag_l2_meaning:
+                                continue
+                            specific_m = self.prettify_string(tag_l2_meaning.text)
+                            l2_meaning[specific_m] = None
+                            # A meaning
+                            #l2_meanings['to make a picture of something or someone with a pencil or pen:'] = ['Jonathan can draw very well.',
+                            #                                                                                  'Draw a line at the bottom of the page.']
+                            examples = []
+                            for tag_examples in html_meaning.find_all(name='div', attrs={'class': 'examp dexamp'}):
+                                    examples.append(self.prettify_string(tag_examples.text))
+                            l2_meaning[specific_m] = examples
+                        l2_word[general_m] = l2_meaning
+                        suffix += 1
+
                 l1_word["meanings"] = l2_word
                 self.word_data.append(l1_word)
 
@@ -212,6 +237,7 @@ class CDDownloader(QObject):
                     pass
         self.user_url = ''
         self.word = ''
+        self.word_data = []
 
     def get_file_entry(self,file,base_name):
         file_entry = {}

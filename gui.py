@@ -25,8 +25,7 @@ from .Cambridge import CDDownloader
 from ._names import *
 from .utils import *
 
-#TODO: Add shortkey for quick inserting new links
-CREATE_NEW_NOTE_SHORTCUT = "t"
+
 icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
 
 
@@ -85,6 +84,7 @@ class LinkDialogue(QDialog):
             return
 
         downloader = mw.cddownloader
+        downloader.clean_up()
         downloader.user_url = self.user_url
         downloader.get_word_defs()        
         self.setResult(QDialog.Accepted)
@@ -93,7 +93,7 @@ class LinkDialogue(QDialog):
 
 class WordDefDialogue(QDialog):
     """
-    A Dialog to let the user edit the texts or change the language.
+    A Dialog to let the user to choose defs to be added.
     """
     def __init__(self,word_data,word):
         self.word_data = word_data
@@ -131,10 +131,13 @@ class WordDefDialogue(QDialog):
                 mean_checkbox.stateChanged.connect(self.toggle_def)
                 ck_it += 1
                 gl.addWidget(mean_checkbox, row, 0,1,-1)
+                for l2_def in l2_def_and_example:
+
                 #for l2_def in l2_def_and_example:
-                #    row += 1
-                #    l2_def_check = QLabel(l2_def)
-                #    gl.addWidget(l2_def_check, row, 0,1,-1)
+                    row += 1
+                    l2_def_check = QCheckBox(l2_def)
+                    l2_def_check
+                    gl.addWidget(l2_def_check, row, 0,1,-1)
                     #for l2_examp in l2_def_and_example[l2_def]:
                     #    row += 1
                     #    l2_def_label = QLabel('<i>'+l2_examp+'</i>')
@@ -215,5 +218,6 @@ class WordDefDialogue(QDialog):
         word['Picture'] = word_to_add['word_image']
 
         add_word(word, self.model)
+
 
 

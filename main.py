@@ -14,6 +14,8 @@ from ._names import *
 
 from .Cambridge import CDDownloader
 
+CREATE_NEW_NOTES_SHORTCUT = "Ctrl+l"
+
 def ask_user_for_link():
     window = LinkDialogue()
     setattr(mw, LINK_DLG_NAME, window)
@@ -21,7 +23,8 @@ def ask_user_for_link():
     downloader = mw.cddownloader
     if r == QDialog.Accepted and downloader.word_data:
         sd = WordDefDialogue(downloader.word_data,downloader.word)
-        sd.open()
+        sd.exec_()
+        sd = None
     
     #if hasattr(mw, LINK_DLG_NAME):
     #    addon_window = getattr(mw, LINK_DLG_NAME, None)
@@ -46,6 +49,7 @@ mw.form.menuEdit.addMenu(mw.edit_cambridge_submenu)
 mw.create_notes_from_link_action = QAction(mw)
 mw.create_notes_from_link_action.setText("Create new note(s) from link")
 mw.create_notes_from_link_action.setToolTip("Fetch word definitions from provided link.")
+mw.create_notes_from_link_action.setShortcut(CREATE_NEW_NOTES_SHORTCUT)
 
 mw.create_notes_from_link_action.triggered.connect(ask_user_for_link)
 mw.edit_cambridge_submenu.addAction(mw.create_notes_from_link_action)
