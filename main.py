@@ -6,7 +6,7 @@
 #from anki.hooks import addHook
 
 from aqt import mw
-from aqt.qt import QAction, QMenu
+from aqt.qt import QAction, QMenu, QDialog
 from aqt.utils import showInfo
 
 from .gui import *
@@ -17,7 +17,11 @@ from .Cambridge import CDDownloader
 def ask_user_for_link():
     window = LinkDialogue()
     setattr(mw, LINK_DLG_NAME, window)
-    window.exec_()
+    r = window.exec_()
+    downloader = mw.cddownloader
+    if r == QDialog.Accepted and downloader.word_data:
+        sd = WordDefDialogue(downloader.word_data,downloader.word)
+        sd.open()
     
     #if hasattr(mw, LINK_DLG_NAME):
     #    addon_window = getattr(mw, LINK_DLG_NAME, None)

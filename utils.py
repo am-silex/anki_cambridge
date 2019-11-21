@@ -99,13 +99,13 @@ def add_word(word, model):
 def create_templates(collection):
     template_Recognition = collection.models.newTemplate('Recognition')
     template_Recognition['qfmt'] = styles.std_word
-    template_Recognition['afmt'] = styles.std_def_sound
+    template_Recognition['afmt'] = styles.std_word_def_sound
     template_Recall = collection.models.newTemplate('Recall')
     template_Recall['qfmt'] = styles.std_def
-    template_Recall['afmt'] = styles.std_word_sound
+    template_Recall['afmt'] = styles.std_def_word_sound
     template_Sound = collection.models.newTemplate('Sound')
     template_Sound['qfmt'] = styles.std_sound
-    template_Sound['afmt'] = styles.std_word_def
+    template_Sound['afmt'] = styles.std_sound_word_def
     return (template_Recognition, template_Recall, template_Sound)
 
 def create_new_model(collection, fields, model_css):

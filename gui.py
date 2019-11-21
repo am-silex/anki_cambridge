@@ -11,6 +11,7 @@ Anki2 add-on to download card's fields with audio from Cambridge Dictionary
 import os
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import * 
+from PyQt5 import QtCore
 #QAction, QMenu, QDialog, QVBoxLayout, QLabel, QLineEdit, QGridLayout, QDialogButtonBox, QCheckBox, QMessageBox
 
 
@@ -45,6 +46,7 @@ class LinkDialogue(QDialog):
         self.user_url = ''
         self.word = ''
         QDialog.__init__(self)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
         self.initUI()
 
     def initUI(self):
@@ -83,12 +85,10 @@ class LinkDialogue(QDialog):
 
         downloader = mw.cddownloader
         downloader.user_url = self.user_url
-        downloader.get_word_defs()
-        
-        if downloader.word_data:
-            sd = WordDefDialogue(downloader.word_data,downloader.word)
-            self.close()
-            sd.exec_()
+        downloader.get_word_defs()        
+        self.setResult(QDialog.Accepted)
+        self.done(QDialog.Accepted)
+
 
 class WordDefDialogue(QDialog):
     """

@@ -14,48 +14,53 @@ model_css = '''
 std_word = """
     <h3 style="text-align: center;">{{Word}}</h3>
     <blockquote>
-    <div style="text-align: center;">{{Grammar}}</div>
-    <div style="text-align: center;">{{Pronunciation}}</div>
+    <div style="text-align: center;">{{Grammar}} {{Pronunciation}}</div>
     </blockquote>
     <div style="text-align: center;">{{Meaning}}</div>
     <br>
     <div style="text-align: center; font-style: italic;">{{Examples}}</div>
     """
 
-std_word_def = """
-    <h3 style="text-align: center;">{{Word}}</h3>
+std_word_def_sound = """
+    <h3 style="text-align: center;">{{Word}}</h3>    
     <blockquote>
-    <div style="text-align: center;">{{Grammar}}</div>
-    <div style="text-align: center;">{{Pronunciation}}</div>
+    <div style="text-align: center;">{{Grammar}} {{Pronunciation}}</div>
     </blockquote>
     <div style="text-align: center;">{{Meaning}}</div>
-    <br>
+    <hr>
     <div style="text-align: center;">{{Definition}}</div>
+    <div style="text-align: center;">{{Audio}}</div>
     """
 
 std_def = """
     <div style="text-align: center;">{{Definition}}</div>
     """
 
-std_def_sound = """
+std_def_word_sound = """
     <div style="text-align: center;">{{Definition}}</div>
-    <div style="text-align: center;">{{Audio}}</div>
-    """
-
-std_word_sound = """
-    <h3 style="text-align: center;">{{Word}}</h3>
+    <hr>
+    <h3 style="text-align: center;">{{Word}}</h3>    
     <blockquote>
-    <div style="text-align: center;">{{Grammar}}</div>
-    <div style="text-align: center;">{{Pronunciation}}</div>
+    <div style="text-align: center;">{{Grammar}} {{Pronunciation}}</div>
     </blockquote>
     <div style="text-align: center;">{{Meaning}}</div>
-    <br>
-    <div style="text-align: center;font-style: italic;">{{Examples}}</div>
-    <br>
+    <hr>
     <div style="text-align: center;">{{Audio}}</div>
     """
 
 std_sound = """
     <div style="text-align: center;">Listen.{{Audio}}</div>
+    """
+
+std_sound_word_def = """
+    <div style="text-align: center;">Listen.{{Audio}}</div>
+    <hr>
+    <h3 style="text-align: center;">{{Word}}</h3>
+    <blockquote>
+    <div style="text-align: center;">{{Grammar}} {{Pronunciation}}</div>
+    </blockquote>
+    <div style="text-align: center;">{{Meaning}}</div>
+    <br>
+    <div style="text-align: center;font-style: italic;">{{Examples}}</div>
     """
     
