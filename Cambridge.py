@@ -156,14 +156,14 @@ class CDDownloader(QObject):
                             l2_meaning[specific_m] = examples
                         l2_word[general_m] = l2_meaning
                        
-                    for html_pos_body in html_l2_tag.find_all(attrs={'class': 'pr dsense dsense-noh','class': 'pr dsense dsense-noh '}):
+                    for html_pos_body in html_l2_tag.find_all(name='div', attrs={'class': 'pr','class': 'dsense','class':'dsense-noh'}):
                         
-                        general_m = 'word' + str(suffix)
+                        general_m = 'UNDEFINED' + str(suffix)
                         l2_word[general_m] = None
                         l2_meaning_key = {}
                         l2_meaning_examples = []
                         l2_meaning = {}
-                        for html_meaning in html_pos_body.find_all(name="div", attrs={'class':'def-block ddef_block','class':'def-block ddef_block '}):
+                        for html_meaning in html_pos_body.find_all(name="div", attrs={'class':'def-block','class':'ddef_block'}):
                             tag_l2_meaning = html_meaning.find("div", attrs={'class':'ddef_h'})
                             if not tag_l2_meaning:
                                 continue
@@ -250,7 +250,7 @@ class CDDownloader(QObject):
 # This code for debugging purposes
 
 #ad = CDDownloader()
-#ad.word = 'draw'
+#ad.word = 'ad-hominem'
 #ad.language = 'en'
 
 #ad.get_word_defs()

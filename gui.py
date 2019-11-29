@@ -126,17 +126,18 @@ class WordDefDialogue(QDialog):
             self.ck_dict = {}
             for l2_meaning, l2_def_and_example in l1_word['meanings'].items():
                 row += 1
-                mean_checkbox = QCheckBox(l2_meaning)
-                mean_checkbox.l2_meaning = l2_meaning
-                mean_checkbox.stateChanged.connect(self.toggle_def)
-                ck_it += 1
-                gl.addWidget(mean_checkbox, row, 0,1,-1)
+                #mean_checkbox = QCheckBox(l2_meaning.upper())
+                #mean_checkbox.l2_meaning = l2_meaning
+                #mean_checkbox.stateChanged.connect(self.toggle_def)
+                #ck_it += 1
+                #gl.addWidget(mean_checkbox, row, 0,1,-1)
                 for l2_def in l2_def_and_example:
 
                 #for l2_def in l2_def_and_example:
                     row += 1
                     l2_def_check = QCheckBox(l2_def)
-                    l2_def_check
+                    l2_def_check.l2_def = l2_def
+                    l2_def_check.stateChanged.connect(self.toggle_def)
                     gl.addWidget(l2_def_check, row, 0,1,-1)
                     #for l2_examp in l2_def_and_example[l2_def]:
                     #    row += 1
@@ -155,12 +156,12 @@ class WordDefDialogue(QDialog):
 
     def toggle_def(self,state):
         sender = self.sender()
-        l2_meaning  = sender.l2_meaning
+        l2_def  = sender.l2_def
         if self.sender():
-            if l2_meaning in self.selected_defs:
-                self.selected_defs.remove(l2_meaning)
+            if l2_def in self.selected_defs:
+                self.selected_defs.remove(l2_def)
             else:
-                self.selected_defs.append(l2_meaning)
+                self.selected_defs.append(l2_def)
 
 
     def create_selected_notes(self):
@@ -176,8 +177,8 @@ class WordDefDialogue(QDialog):
         for next_def in self.selected_defs:
             for l1_word in self.word_data:
                 for l2_key, l2_value in l1_word['meanings'].items():
-                    if l2_key == next_def:
-                        for l3_specific_def, l3_examples in l2_value.items():
+                    for l3_specific_def, l3_examples in l2_value.items():
+                        if l3_specific_def == next_def:
                             word_to_save = {}
                             word_to_save['word_title']      = l1_word['word_title']
                             word_to_save['word_gram']       = l1_word['word_gram']
