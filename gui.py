@@ -209,10 +209,10 @@ class WordDefDialogue(QDialog):
 
         """
         word = {}
-        word['Word'] = word_to_add['word_title']
+        word['Word'] = word_to_add['word_title'] 
         word['Grammar'] = word_to_add['word_gram']
         word['Pronunciation'] = word_to_add['word_pro_uk'] +' '+ word_to_add['word_pro_us']
-        word['Meaning'] = word_to_add['word_general']
+        word['Meaning'] = word_to_add['word_general'] if not 'UNDEFINED' in word_to_add['word_general'] else ''
         word['Definition'] = word_to_add['word_specific']
         word['Examples'] = word_to_add['word_examples']
         word['Sounds'] = [word_to_add['word_uk_media'],word_to_add['word_us_media']]
@@ -221,4 +221,54 @@ class WordDefDialogue(QDialog):
         add_word(word, self.model)
 
 
+class AddonConfigWindow(QDialog):
+    """
+    A Dialog to let the user to choose defs to be added.
+    """
+    def __init__(self):
+        QDialog.__init__(self)
+        self.initUI()
 
+    def initUI(self):
+        self.setWindowTitle('Cambridge Addon')
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+
+        # Authorize and save cookies - Google OAuth2 
+        # Some useful varibale go here
+        auth_layout = QHBoxLayout()
+        auth_label = QLabel()
+        auth_label.setText('Auorization status:')
+        auth_layout.addWidget(auth_label)
+        auth_label_status = QLabel()
+        auth_label_status.setText('Unknown')
+        auth_layout.addWidget(auth_label_status)
+        auth_btn = QPushButton()
+        auth_btn.setText('Authorize via Google')
+        auth_btn.clicked.connect(self.btn_auth_clicked)
+        auth_layout.addWidget(auth_btn)
+        layout.addLayout(auth_layout)
+        # Stretcher
+        layout.addStretch()
+
+        # Bottom buttons - Ok, Cancel
+        btn_bottom_layout = QHBoxLayout()
+        btn_bottom_layout.addStretch()        
+        btn_Ok = QPushButton()
+        btn_Ok.setText('Ok')
+        btn_bottom_layout.addWidget(btn_Ok,QtCore.Qt.AlignRight)
+        btn_Cancel = QPushButton()
+        btn_Cancel.setText('Cancel')
+        btn_bottom_layout.addWidget(btn_Cancel,QtCore.Qt.AlignRight)
+        layout.addLayout(btn_bottom_layout)
+        btn_Ok.clicked.connect(self.close)
+        btn_Cancel.clicked.connect(self.close)
+
+    def btn_auth_clicked(self):
+        QMessageBox.information(self,'Auth','Auth')
+
+    def btn_Ok(self):
+        self.close()
+
+    def btn_Cancel(self):
+        self.close()

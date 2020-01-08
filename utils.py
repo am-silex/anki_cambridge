@@ -19,14 +19,16 @@ fields = ['Word','Examples','Definition','Audio','Picture','Pronunciation','Gram
 def fill_note(word, note):
     note['Word'] = word.get('Word') if word.get('Word') else 'NO_WORD_VALUE'
     # print("Filling word {}".format(word['wd']))
-    note['Examples'] = word.get('Examples') if word.get('Examples') else 'Examples is absent'
-    note['Definition'] = word.get('Definition') if word.get('Definition') else 'Definition is absent'
-    note['Pronunciation'] = word.get('Pronunciation') if word.get('Pronunciation') else 'Pronunciation is absent'
-    note['Grammar'] = word.get('Grammar') if word.get('Grammar') else 'Grammar is absent'
-    note['Meaning'] = word.get('Meaning') if word.get('Meaning') else 'Meaning is absent'
+    note['Examples'] = word.get('Examples') if word.get('Examples') else ''
+    note['Definition'] = word.get('Definition') if word.get('Definition') else ''
+    note['Pronunciation'] = word.get('Pronunciation') if word.get('Pronunciation') else ''
+    note['Grammar'] = word.get('Grammar') if word.get('Grammar') else ''
+    note['Meaning'] = word.get('Meaning') if word.get('Meaning') else ''
     note['Picture'] = word.get('Picture') if word.get('Picture') else ''
     audio_field = ''
     for file in word['Sounds']:
+        if not file:
+            continue
         f_entry = get_file_entry(file,note['Word'])
         audio_field = audio_field + '[sound:' + unmunge_to_mediafile(f_entry)+'] '
     note['Audio'] = audio_field
@@ -166,3 +168,57 @@ def is_valid_ascii(url):
     except:
         return False
     return True
+
+
+def get_module_name():
+    return __name__.split(".")[0]
+
+
+def get_addon_dir():
+    root = mw.pm.addonFolder()
+    addon_dir = os.path.join(root, get_module_name())
+    return addon_dir
+
+
+def get_cookies_path():
+    """
+    Returns a full path to cookies.txt in the user_files folder
+    :return:
+    """
+    # user_files folder in the current addon's dir
+    uf_dir = os.path.join(get_addon_dir(), 'user_files')
+    # Create a folder if doesn't exist
+    if not os.path.exists(uf_dir):
+        try:
+            os.makedirs(uf_dir)
+        except:
+            # TODO: Improve error handling
+            return None
+    return os.path.join(uf_dir, 'cookies.txt')
+
+
+def get_config():
+    # Load config from config.json file
+    if getattr(getattr(mw, "addonManager", None), "getConfig", None):
+        config = mw.addonManager.getConfig(get_module_name())
+    else:
+        try:
+            config_file = os.path.join(get_addon_dir(), 'config.json')
+            with open(config_file, 'r') as f:
+                config = json.loads(f.read())
+        except IOError:
+            config = None
+    return config
+
+
+def update_config(config):
+    if getattr(getattr(mw, "addonManager", None), "writeConfig", None):
+        mw.addonManager.writeConfig(get_module_name(), config)
+    else:
+        try:
+            config_file = os.path.join(get_addon_dir(), 'config.json')
+            with open(config_file, 'w') as f:
+                json.dump(config, f, sort_keys=True, indent=2)
+        except:
+            # TODO: Improve error handling
+            pass

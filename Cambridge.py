@@ -78,7 +78,7 @@ class CDDownloader(QObject):
         #if not html_tag_entry:
         #    return
 
-        for tag_cald4 in word_soup.find_all(name='div', attrs={'class': 'pr dictionary','data-id':'cald4'}):
+        for tag_cald4 in word_soup.find_all(name='div', attrs={'class': 'pr dictionary','data-id':'cald4', 'data-id':'cbed'}):
             for tag_entry in tag_cald4.find_all(name='div', attrs={'class': 'pr entry-body__el'}):
                 l1_word = {}
                 # Word title
@@ -97,7 +97,10 @@ class CDDownloader(QObject):
                     cur_tag = tag_entry.find("span", attrs={'class':'uk dpron-i'})
                 if cur_tag:
                     ipa = cur_tag.find(name='span',attrs={'class':'ipa dipa lpr-2 lpl-1'})
-                    ipa_text = self.prettify_string(ipa.text)
+                    if ipa:
+                        ipa_text = self.prettify_string(ipa.text)
+                    else:
+                        ipa_text = ''
                     l1_word["word_pro_uk"] = 'UK '+ ipa_text
                     media_file_tag = cur_tag.find("source", attrs={'type':'audio/mpeg'})
                     if media_file_tag:
@@ -112,7 +115,10 @@ class CDDownloader(QObject):
                     cur_tag = tag_entry.find("span", attrs={'class':'us dpron-i'})
                 if cur_tag:
                     ipa = cur_tag.find(name='span',attrs={'class':'ipa dipa lpr-2 lpl-1'})
-                    ipa_text = self.prettify_string(ipa.text)
+                    if ipa:
+                        ipa_text = self.prettify_string(ipa.text)
+                    else:
+                        ipa_text = ''
                     l1_word["word_pro_us"] = 'US '+ ipa_text
                     media_file_tag = cur_tag.find("source", attrs={'type':'audio/mpeg'})
                     if media_file_tag:
