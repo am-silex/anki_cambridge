@@ -43,9 +43,8 @@ def open_main_windows_addon():
     #    #else:
     #    #    showInfo("Unable to load config. Make sure that config.json "
     #    #             "is present and not in use by other applications")
+
     
-
-
 mw.edit_cambridge_submenu = QMenu(u"&Cambridge Dictionary", mw)
 mw.form.menuEdit.addSeparator()
 mw.form.menuEdit.addMenu(mw.edit_cambridge_submenu)

@@ -212,13 +212,22 @@ def get_config():
 
 
 def update_config(config):
-    if getattr(getattr(mw, "addonManager", None), "writeConfig", None):
-        mw.addonManager.writeConfig(get_module_name(), config)
-    else:
-        try:
-            config_file = os.path.join(get_addon_dir(), 'config.json')
-            with open(config_file, 'w') as f:
-                json.dump(config, f, sort_keys=True, indent=2)
-        except:
-            # TODO: Improve error handling
-            pass
+    #if getattr(getattr(mw, "addonManager", None), "writeConfig", None):
+    #    mw.addonManager.writeConfig(get_module_name(), config)
+    #else:
+    try:
+        config_file = os.path.join(get_addon_dir(), 'config.json')
+        with open(config_file, 'w') as f:
+            json.dump(config, f, sort_keys=True, indent=2)
+    except:
+        # TODO: Improve error handling
+        pass
+
+
+def get_config_dict():
+    config = {}
+    config['cookie'] = ''
+    return config
+
+
+

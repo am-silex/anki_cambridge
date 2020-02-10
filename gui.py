@@ -226,11 +226,12 @@ class AddonConfigWindow(QDialog):
     A Dialog to let the user to choose defs to be added.
     """
     def __init__(self):
+        self.config = get_config()
         QDialog.__init__(self)
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle('Cambridge Addon')
+        self.setWindowTitle('Cambridge Addon Settings')
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -247,7 +248,19 @@ class AddonConfigWindow(QDialog):
         auth_btn.setText('Authorize via Google')
         auth_btn.clicked.connect(self.btn_auth_clicked)
         auth_layout.addWidget(auth_btn)
-        layout.addLayout(auth_layout)
+        layout.addLayout(auth_layout)        
+
+        # Cookie - for semi authorization
+        h_layout = QHBoxLayout()
+        h_label = QLabel()
+        h_label.setText('Cookie:')
+        h_layout.addWidget(h_label)
+        h_layout.addStretch()        
+        self.ledit_cookie = QLineEdit()
+        self.ledit_cookie.setText(self.config['cookie'] if self.config['cookie'] else '')
+        h_layout.addWidget(self.ledit_cookie,QtCore.Qt.AlignRight)
+        layout.addLayout(h_layout,QtCore.Qt.AlignTop)
+
         # Stretcher
         layout.addStretch()
 
@@ -261,14 +274,19 @@ class AddonConfigWindow(QDialog):
         btn_Cancel.setText('Cancel')
         btn_bottom_layout.addWidget(btn_Cancel,QtCore.Qt.AlignRight)
         layout.addLayout(btn_bottom_layout)
-        btn_Ok.clicked.connect(self.close)
+        btn_Ok.clicked.connect(self.btn_Ok)
         btn_Cancel.clicked.connect(self.close)
+        
 
     def btn_auth_clicked(self):
         QMessageBox.information(self,'Auth','Auth')
 
     def btn_Ok(self):
+        # Fill config dict with current settings and write them to file
+        self.config['cookie'] = self.ledit_cookie.text()
+        update_config(self.config)
         self.close()
 
     def btn_Cancel(self):
         self.close()
+
