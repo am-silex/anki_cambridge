@@ -12,8 +12,8 @@ import os
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import * 
 from PyQt5 import QtCore
-#QAction, QMenu, QDialog, QVBoxLayout, QLabel, QLineEdit, QGridLayout, QDialogButtonBox, QCheckBox, QMessageBox
-
+#QAction, QMenu, QDialog, QVBoxLayout, QLabel, QLineEdit, QGridLayout,
+#QDialogButtonBox, QCheckBox, QMessageBox
 
 from aqt import mw
 from aqt.utils import tooltip
@@ -37,7 +37,6 @@ icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
 # DOWNLOAD_SIDE_SHORTCUT = "t"
 # DOWNLOAD_MANUAL_SHORTCUT = "Ctrl+t"
 # Place were we keep our megaphone icon.
-
 class LinkDialogue(QDialog):
     """
     A Dialog to let the user edit the texts or change the language.
@@ -84,7 +83,7 @@ class LinkDialogue(QDialog):
             return
 
         downloader = mw.cddownloader
-        downloader.clean_up()
+        #downloader.clean_up()
         downloader.user_url = self.user_url
         downloader.get_word_defs()        
         self.setResult(QDialog.Accepted)
@@ -99,6 +98,9 @@ class WordDefDialogue(QDialog):
         self.word_data = word_data
         self.word = word
         self.selected_defs = [] # list of selected defs (l1_word)
+        self.deletion_mark = False
+        self.l2_def = None
+        self.single_word = False
         self.set_model()
         QDialog.__init__(self)
         self.initUI()
@@ -111,15 +113,15 @@ class WordDefDialogue(QDialog):
         self.setWindowIcon(QIcon(":/icons/anki.png"))
         layout = QVBoxLayout()
         self.setLayout(layout)   
-        # Looping through data structure 
+        # Looping through data structure
         for l1_word in self.word_data:
             row = 0
             gl = QGridLayout()
             gr = QGroupBox()
             gr.setLayout(gl)
-            word_title = QLabel('<h3>'+l1_word['word_title']+'</h3>')
+            word_title = QLabel('<h3>' + l1_word['word_title'] + '</h3>')
             gl.addWidget(word_title,row,0)
-            word_gram = QLabel('<h4>'+l1_word['word_gram']+'</h4>')
+            word_gram = QLabel('<h4>' + l1_word['word_gram'] + '</h4>')
             gl.addWidget(word_gram,row,1)
             #Looping through top-level meaning
             ck_it = 0
@@ -144,6 +146,7 @@ class WordDefDialogue(QDialog):
                     #    l2_def_label = QLabel('<i>'+l2_examp+'</i>')
                     #    l2_def_label.setIndent(10)
                     #    gl.addWidget(l2_def_label, row, 0,1,-1)
+                    self.l2_def = l2_def
             layout.addWidget(gr)
 
         dialog_buttons = QDialogButtonBox(self)
@@ -153,10 +156,15 @@ class WordDefDialogue(QDialog):
         dialog_buttons.rejected.connect(self.reject)
         layout.addWidget(dialog_buttons)
 
+        # Automatic add single word with single def if in add_single mode
+        if len(self.word_data) == 1:
+            self.selected_defs.append(self.l2_def)
+            self.create_selected_notes()
+            self.single_word = True
 
     def toggle_def(self,state):
         sender = self.sender()
-        l2_def  = sender.l2_def
+        l2_def = sender.l2_def
         if self.sender():
             if l2_def in self.selected_defs:
                 self.selected_defs.remove(l2_def)
@@ -180,22 +188,24 @@ class WordDefDialogue(QDialog):
                     for l3_specific_def, l3_examples in l2_value.items():
                         if l3_specific_def == next_def:
                             word_to_save = {}
-                            word_to_save['word_title']      = l1_word['word_title']
-                            word_to_save['word_gram']       = l1_word['word_gram']
-                            word_to_save['word_pro_uk']     = l1_word['word_pro_uk']
-                            word_to_save['word_uk_media']   = l1_word['word_uk_media']
-                            word_to_save['word_pro_us']     = l1_word['word_pro_us']
-                            word_to_save['word_us_media']   = l1_word['word_us_media']
-                            word_to_save['word_general']    = l2_key
-                            word_to_save['word_specific']   = l3_specific_def
-                            word_to_save['word_examples']   = "<br> ".join(l3_examples)
-                            word_to_save['word_image']      = l1_word['word_image']
+                            word_to_save['word_title'] = l1_word['word_title']
+                            word_to_save['word_gram'] = l1_word['word_gram']
+                            word_to_save['word_pro_uk'] = l1_word['word_pro_uk']
+                            word_to_save['word_uk_media'] = l1_word['word_uk_media']
+                            word_to_save['word_pro_us'] = l1_word['word_pro_us']
+                            word_to_save['word_us_media'] = l1_word['word_us_media']
+                            word_to_save['word_general'] = l2_key
+                            word_to_save['word_specific'] = l3_specific_def
+                            word_to_save['word_examples'] = "<br> ".join(l3_examples)
+                            word_to_save['word_image'] = l1_word['word_image']
                             self.add_note(word_to_save)
                             
         #for sel_def in self.selected_defs:
         #    if self.word_data[sel_def]:
-        mw.cddownloader.clean_up()
-        self.close()
+        #mw.cddownloader.clean_up()
+        #self.close(QDialog.Accepted)
+        self.deletion_mark = True
+        self.done(0)
         
        
     def set_model(self):
@@ -211,7 +221,7 @@ class WordDefDialogue(QDialog):
         word = {}
         word['Word'] = word_to_add['word_title'] 
         word['Grammar'] = word_to_add['word_gram']
-        word['Pronunciation'] = word_to_add['word_pro_uk'] +' '+ word_to_add['word_pro_us']
+        word['Pronunciation'] = word_to_add['word_pro_uk'] + ' ' + word_to_add['word_pro_us']
         word['Meaning'] = word_to_add['word_general'] if not 'UNDEFINED' in word_to_add['word_general'] else ''
         word['Definition'] = word_to_add['word_specific']
         word['Examples'] = word_to_add['word_examples']
@@ -235,7 +245,7 @@ class AddonConfigWindow(QDialog):
         layout = QVBoxLayout()
         self.setLayout(layout)
 
-        # Authorize and save cookies - Google OAuth2 
+        # Authorize and save cookies - Google OAuth2
         # Some useful varibale go here
         auth_layout = QHBoxLayout()
         auth_label = QLabel()
@@ -290,3 +300,74 @@ class AddonConfigWindow(QDialog):
     def btn_Cancel(self):
         self.close()
 
+
+class WordListLinkDialogue(QDialog):
+    """
+    A Dialog to let the user enter link for word list.
+    """
+    def __init__(self, parent=None):
+        self.user_url = ''
+        QDialog.__init__(self)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
+        self.initUI()
+
+    def initUI(self):
+        u"""Build the dialog box."""
+
+        self.setWindowTitle(_(u'Anki – Word list link'))
+        self.setWindowIcon(QIcon(":/icons/anki.png"))
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        self.edit_word_head = QLabel()
+
+        self.edit_word_head.setText(_('''<h4>Enter link for parsing</h4>'''))
+        bold_font = QFont()
+        bold_font.setBold(True)
+        self.edit_word_head.setFont(bold_font)
+        layout.addWidget(self.edit_word_head)
+        
+        self.link_editor = QLineEdit()
+        self.link_editor.placeholderText = 'Enter your link here'
+        layout.addWidget(self.link_editor)
+        # Options
+        self.ck_skip_multidef_words = QCheckBox('Skip milti-def words')
+        layout.addWidget(self.ck_skip_multidef_words)
+
+        dialog_buttons = QDialogButtonBox(self)
+        dialog_buttons.addButton(QDialogButtonBox.Cancel)
+        dialog_buttons.addButton(QDialogButtonBox.Ok)
+        dialog_buttons.accepted.connect(self.parse_word_list_from_link)
+        dialog_buttons.rejected.connect(self.reject)
+        layout.addWidget(dialog_buttons)
+        self.link_editor.setFocus()
+
+    def parse_word_list_from_link(self):
+
+        self.user_url = self.link_editor.text()
+        if not self.user_url:
+            QMessageBox.warning(mw,'Link is not provided','Please, provide a link for you word list')
+            return
+
+        downloader = mw.cddownloader
+        all_words_in_list = downloader.get_all_words_in_list(self.user_url)
+        if all_words_in_list:
+            for cur_word in all_words_in_list:
+                downloader.clean_up()
+                downloader.user_url = cur_word['ref']
+                downloader.word_id = cur_word['word_id']
+                downloader.get_word_defs()
+                if downloader.word_data:
+                    sd = WordDefDialogue(downloader.word_data,downloader.word)
+                    if sd.single_word:
+                        downloader.delete_word_from_wordlist()
+                        continue
+                    if self.ck_skip_multidef_words.checkState() == QtCore.Qt.Checked:
+                        continue
+                    sd.exec_()
+                    if sd.deletion_mark:
+                        downloader.delete_word_from_wordlist()
+            self.close()
+                        
+
+        self.setResult(QDialog.Accepted)
+        self.done(QDialog.Accepted)

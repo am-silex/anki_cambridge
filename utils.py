@@ -199,16 +199,16 @@ def get_cookies_path():
 
 def get_config():
     # Load config from config.json file
-    if getattr(getattr(mw, "addonManager", None), "getConfig", None):
-        config = mw.addonManager.getConfig(get_module_name())
-    else:
+    #if getattr(getattr(mw, "addonManager", None), "getConfig", None):
+    #    config = mw.addonManager.getConfig(get_module_name())
+    #else:
         try:
             config_file = os.path.join(get_addon_dir(), 'config.json')
             with open(config_file, 'r') as f:
                 config = json.loads(f.read())
         except IOError:
             config = None
-    return config
+        return config
 
 
 def update_config(config):
@@ -221,7 +221,8 @@ def update_config(config):
             json.dump(config, f, sort_keys=True, indent=2)
     except:
         # TODO: Improve error handling
-        pass
+        #pass
+        raise SystemError
 
 
 def get_config_dict():
