@@ -1,5 +1,0 @@
-{
-    "files": ["grabber.py", "samplebuffers.py", "hellogl.py",
-              "hellogl2.py", "contextinfo.py", "2dpainting.py",
-              "overpainting.py"]
-}

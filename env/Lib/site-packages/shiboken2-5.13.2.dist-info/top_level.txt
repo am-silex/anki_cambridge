@@ -1,2 +1,0 @@
-QtCore
-shiboken2

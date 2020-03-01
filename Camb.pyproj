@@ -23,9 +23,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Cambridge.py" />
-    <Compile Include="dispatcher.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="download.py" />
     <Compile Include="downloader.py" />
     <Compile Include="download_entry.py" />

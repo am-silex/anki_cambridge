@@ -19,7 +19,7 @@ from aqt import mw
 from aqt.utils import tooltip
 from anki.hooks import addHook
 
-from .processors import processor
+#from .processors import processor
 from .Cambridge import CDDownloader
 
 from ._names import *
