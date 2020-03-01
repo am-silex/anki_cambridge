@@ -346,4 +346,4 @@ snippets.txt
 _old/
 .vs
 env/
-#*.sln
+*.sln
