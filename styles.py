@@ -18,7 +18,7 @@ std_word = """
     </blockquote>
     <div style="text-align: center;">{{Meaning}}</div>
     <br>
-    <div style="text-align: center; font-style: italic;">{{Examples}}</div>
+    <div style="text-align: center;font-style: italic;">{{Examples}}</div>
     """
 
 std_word_def_sound = """
@@ -27,16 +27,22 @@ std_word_def_sound = """
     <div style="text-align: center;">{{Grammar}} {{Pronunciation}}</div>
     </blockquote>
     <div style="text-align: center;">{{Meaning}}</div>
+    <br>
+    <div style="text-align: center;font-style: italic;">{{Examples}}</div>
     <hr>
+    <div style="text-align: center;">{{Picture}}</div>
     <div style="text-align: center;">{{Definition}}</div>
     <div style="text-align: center;">{{Audio}}</div>
+    <sup style="text-align: center;">{{SynonymAntonym}}<sup>
     """
 
 std_def = """
+    <div style="text-align: center;">{{Picture}}</div>
     <div style="text-align: center;">{{Definition}}</div>
     """
 
 std_def_word_sound = """
+    <div style="text-align: center;">{{Picture}}</div>
     <div style="text-align: center;">{{Definition}}</div>
     <hr>
     <h3 style="text-align: center;">{{Word}}</h3>    
@@ -44,8 +50,11 @@ std_def_word_sound = """
     <div style="text-align: center;">{{Grammar}} {{Pronunciation}}</div>
     </blockquote>
     <div style="text-align: center;">{{Meaning}}</div>
+    <br>
+    <div style="text-align: center;font-style: italic;">{{Examples}}</div>
     <hr>
     <div style="text-align: center;">{{Audio}}</div>
+    <sup style="text-align: center;">{{SynonymAntonym}}<sup>
     """
 
 std_sound = """
@@ -59,8 +68,10 @@ std_sound_word_def = """
     <blockquote>
     <div style="text-align: center;">{{Grammar}} {{Pronunciation}}</div>
     </blockquote>
+    <div style="text-align: center;">{{Picture}}</div>
     <div style="text-align: center;">{{Meaning}}</div>
     <br>
     <div style="text-align: center;font-style: italic;">{{Examples}}</div>
+    <sup style="text-align: center;">{{SynonymAntonym}}<sup>
     """
     

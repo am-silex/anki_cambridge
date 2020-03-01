@@ -160,19 +160,6 @@ class CDDownloader(QObject):
                                 continue
                             specific_m = self.prettify_string(tag_l2_meaning.text)
                             l2_meaning[specific_m] = None
-                            # A meaning
-                            #l2_meanings['to make a picture of something or
-                            #someone with a pencil or pen:'] = ['Jonathan can
-                            #draw very well.',
-                            #                                                                                  'Draw
-                            #                                                                                  a
-                            #                                                                                  line
-                            #                                                                                  at
-                            #                                                                                  the
-                            #                                                                                  bottom
-                            #                                                                                  of
-                            #                                                                                  the
-                            #                                                                                  page.']
                             examples = []
                             for tag_examples in html_meaning.find_all(name='div', attrs={'class': 'examp dexamp'}):
                                     examples.append(self.prettify_string(tag_examples.text))
@@ -192,19 +179,6 @@ class CDDownloader(QObject):
                                 continue
                             specific_m = self.prettify_string(tag_l2_meaning.text)
                             l2_meaning[specific_m] = None
-                            # A meaning
-                            #l2_meanings['to make a picture of something or
-                            #someone with a pencil or pen:'] = ['Jonathan can
-                            #draw very well.',
-                            #                                                                                  'Draw
-                            #                                                                                  a
-                            #                                                                                  line
-                            #                                                                                  at
-                            #                                                                                  the
-                            #                                                                                  bottom
-                            #                                                                                  of
-                            #                                                                                  the
-                            #                                                                                  page.']
                             examples = []
                             for tag_examples in html_meaning.find_all(name='div', attrs={'class': 'examp dexamp'}):
                                     examples.append(self.prettify_string(tag_examples.text))
@@ -287,13 +261,11 @@ class CDDownloader(QObject):
             return None
 
         all_words_in_list = []
-        #req = urllib.request.Request(WORDLIST_URL)
         req = urllib.request.Request(wordlist_link)
 
         #req.add_header("User-Agent",USER_AGENT)
         req.add_header('Accept-Language', 'en-US')
         req.add_header('Cookie', config['cookie'])
-        #req.add_header('Cookie', 'amp-access=amp-sSL5PWF4cDaHSINafMzEUQ; _ga=GA1.3.1644716223.1578470821; _hjid=acc4a0d6-3857-4df7-940c-83951fa6e3c9; _fbp=fb.1.1578470822113.1993653726; _gig_llp=googleplus; _gig_llu=Alexey; username=Alexey+Morar; logged=logged; beta-redesign=active; gig_bootstrap_3_1Rly-IzDTFvKO75hiQQbkpInsqcVx6RBnqVUozkm1OVH_QRzS-xI3Cwj7qq7hWv5=_gigya_ver3; __gads=ID=36f18e4d3220be9b:T=1581445988:S=ALNI_MadCkhUQyNDEZdicCaIBjVhwpjJig; preferredDictionaries="english,british-grammar,english-russian,english-polish"; _cmpQcif3pcsupported=1; googlepersonalization=Ouv5zfOuv5zfgA; eupubconsent=BOuv5zfOuv5zfAKAAAENAAAA-AAAAA; euconsent=BOuv5zfOuv5zfAKAABENC9-AAAAuFr_7__7-_9_-_f__9uj3Or_v_f__32ccL59v_h_7v-_7fi_20nV4u_1vft9yfk1-5ctDztp507iakiPHmqNeb9n9mz1e5pRP78k89r7337Ew_v8_v-b7BCON_YxE; XSRF-TOKEN=aa1a15ea-29c8-48be-85b0-96e2702e515f; __cfduid=df1bce0ab22c34b684b0beabe7a901ad81582255941; _gid=GA1.3.497973625.1582600775; glt_3_1Rly-IzDTFvKO75hiQQbkpInsqcVx6RBnqVUozkm1OVH_QRzS-xI3Cwj7qq7hWv5=st2.s.AcbHUdRfBg.buWl7KBemIKjPD4sec3AoRdSlIpvaVYQZLT7WnK6XG_TYE-H_tCByGuas6Ct75L-ercjq7gYVMiHWJETvufxqExnKx9iADuPeusNBM93lxA.9wNsjSHxJCfBMnvCwZaMrdYYMKMH62Pdq0XwcPBOl_tBAdq23Ljd4UMg56sgEmW-ciY1Sc4VFqSyBqXxDIv8ug.sc3%7CUUID%3D08796647443945aa83ff72063b318baa; remember-me=Z29vZ2xlcGx1cy0xMDk3MjYwMzY5NDU2MjAxNTU3MzE6MTU4MzgxMDQzMTk2MDpjOWQ3NDAzYTQyMjg0MzM1M2Y0NzdhNzE2NDkxMTZhNQ; JSESSIONID=4D0754656F35DA1E19843461527F826F-n1')
 
         try:
             response = urllib.request.urlopen(req)
@@ -317,10 +289,7 @@ class CDDownloader(QObject):
         return all_words_in_list
 
     def delete_word_from_wordlist(self):
-        #QMessageBox.warning(mw,'self.word_id',self.word_id)
-        #QMessageBox.warning(mw,'self.wordlist_id',self.wordlist_id)
         if self.wordlist_id and self.word_id:
-            # {"id":"25078367","wordlistId":"21215803"}
             config = get_config()
             if config is None:
                 return None
@@ -332,7 +301,6 @@ class CDDownloader(QObject):
 
             req.add_header('Accept-Language', 'en-US')
             req.add_header('Cookie', config['cookie'])
-            #data = urllib.parse.urlencode({'id': self.word_id, 'wordlistId': self.wordlist_id})
             data = json.dumps({'id': self.word_id, 'wordlistId': self.wordlist_id})
             data = data.encode('ascii')
             r = urllib.request.urlopen(req, data)
@@ -345,5 +313,4 @@ class CDDownloader(QObject):
 #ad.language = 'en'
 #ad.user_url = 'https://dictionary.cambridge.org/dictionary/english/tear-up'
 #ad.get_word_defs()
-#print(str(ad.word_data))
 

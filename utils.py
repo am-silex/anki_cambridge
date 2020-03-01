@@ -14,7 +14,7 @@ from .mediafile_utils import *
 from PyQt5.QtWidgets import QMessageBox
 
 
-fields = ['Word','Examples','Definition','Audio','Picture','Pronunciation','Grammar','Meaning']
+fields = ['Word','Examples','Definition','Audio','Picture','Pronunciation','Grammar','Meaning','SynonymAntonym']
 
 def fill_note(word, note):
     note['Word'] = word.get('Word') if word.get('Word') else 'NO_WORD_VALUE'
@@ -171,6 +171,7 @@ def is_valid_ascii(url):
 
 
 def get_module_name():
+
     return __name__.split(".")[0]
 
 
@@ -207,7 +208,16 @@ def get_config():
             with open(config_file, 'r') as f:
                 config = json.loads(f.read())
         except IOError:
-            config = None
+            try:
+                config = {'cookie':''}
+                config_file = os.path.join(get_addon_dir(), 'config.json')
+                with open(config_file, 'w') as f:
+                    json.dump(config, f, sort_keys=True, indent=2)
+                f.close()
+                with open(config_file, 'r') as f:
+                    config = json.loads(f.read())
+            except:
+                config = None
         return config
 
 
