@@ -88,7 +88,7 @@ StyleCopReport.xml
 *.pidb
 *.svclog
 *.scc
-#*.pyproj
+*.pyproj
 
 # Chutzpah Test files
 _Chutzpah*
@@ -345,3 +345,5 @@ healthchecksdb
 snippets.txt
 _old/
 .vs
+env/
+#*.sln
