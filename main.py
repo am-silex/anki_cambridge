@@ -13,6 +13,7 @@ from .gui import *
 from ._names import *
 
 from .Cambridge import CDDownloader
+from .utils import *
 
 CREATE_NEW_NOTES_SHORTCUT = "Ctrl+l"
 
@@ -40,6 +41,10 @@ def open_main_windows_addon():
 
     window = AddonConfigWindow()
     window.exec_()
+
+def find_notes():
+    find_notes_with_picture_for_correction()
+
     #if hasattr(mw, LINK_DLG_NAME):
     #    addon_window = getattr(mw, LINK_DLG_NAME, None)
     #    addon_window.activateWindow()
@@ -73,6 +78,15 @@ mw.create_notes_from_wordlist_link_action.setToolTip("Parse whole word list from
 
 mw.create_notes_from_wordlist_link_action.triggered.connect(ask_user_for_wordlist_link)
 mw.edit_cambridge_submenu.addAction(mw.create_notes_from_wordlist_link_action)
+
+#Test
+mw.act1 = QAction(mw)
+mw.act1.setText("Find notes")
+mw.act1.setToolTip("Parse whole word list from provided link.")
+
+mw.act1.triggered.connect(find_notes)
+mw.edit_cambridge_submenu.addAction(mw.act1)
+
 
 # Addon settings
 mw.edit_cambridge_submenu.addSeparator()

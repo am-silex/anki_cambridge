@@ -83,7 +83,7 @@ class LinkDialogue(QDialog):
             return
 
         downloader = mw.cddownloader
-        #downloader.clean_up()
+        downloader.clean_up()
         downloader.user_url = self.user_url
         downloader.get_word_defs()        
         self.setResult(QDialog.Accepted)
