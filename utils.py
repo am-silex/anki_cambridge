@@ -6,7 +6,6 @@ import ssl
 
 from aqt import mw
 from anki import notes
-from anki import find
 
 from . import styles
 from ._names import *
@@ -25,7 +24,7 @@ def fill_note(word, note):
     note['Pronunciation'] = word.get('Pronunciation') if word.get('Pronunciation') else ''
     note['Grammar'] = word.get('Grammar') if word.get('Grammar') else ''
     note['Meaning'] = word.get('Meaning') if word.get('Meaning') else ''
-    #note['Picture'] = word.get('Picture') if word.get('Picture') else ''
+    note['Picture'] = word.get('Picture') if word.get('Picture') else ''
     audio_field = ''
     for file in word['Sounds']:
         if not file:
@@ -33,11 +32,7 @@ def fill_note(word, note):
         f_entry = get_file_entry(file,note['Word'])
         audio_field = audio_field + '[sound:' + unmunge_to_mediafile(f_entry)+'] '
     note['Audio'] = audio_field
-    f_picture = word.get('Picture')
-    f_entry = get_file_entry(f_picture,note['Word'])
-    picture_field = '<img src="' + unmunge_to_mediafile(f_entry) + '">'
-    note['Picture'] = picture_field
-    #picture_name = word.get('Picture').split('/')[-1] if word.get('Picture') else ''
+    picture_name = word.get('Picture').split('/')[-1] if word.get('Picture') else ''
     #if is_old_api:
     #    # User's choice translation has index 0, then come translations sorted by votes (higher to lower)
     #    translations = word.get('translations')
@@ -244,11 +239,6 @@ def get_config_dict():
     config = {}
     config['cookie'] = ''
     return config
-
-def find_notes_with_picture_for_correction():
-    notes = find.Finder.findNotes('Picture like ''%cambridge%'' ')
-    QMessageBox.information('Notes',str(notes))
-    return notes
 
 
 

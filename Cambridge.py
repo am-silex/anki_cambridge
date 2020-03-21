@@ -34,7 +34,6 @@ class CDDownloader(QObject):
         self.word = ''
         self.language = 'en'
         self.word_data = []
-        self.l2_syn = {}
         self.user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36'
         self.wordlist_id = ''
         self.word_id = ''
@@ -136,12 +135,11 @@ class CDDownloader(QObject):
                 # Image
                 tag_picture = tag_entry.find(name='amp-img',attrs={'class':'dimg_i'})
                 if tag_picture:
-                    l1_word['word_image'] = self.get_tempfile_from_url(self.base_url.rstrip('/') + tag_picture.attrs['src'])
+                    l1_word['word_image'] = self.base_url.rstrip('/') + tag_picture.attrs['src']
                 else:
                     l1_word['word_image'] = ''
                 l2_word = {}
                 suffix = 1
-                self.l2_syn = {}
                 #Looping through word general definition - like 'draw verb
                 #(PICTURE)'
                 for html_l2_tag in tag_entry.find_all(name=['div','span'], attrs={'class': ['pos-body','idiom-body didiom-body','pv-body dpv-body']}):
@@ -166,15 +164,7 @@ class CDDownloader(QObject):
                             for tag_examples in html_meaning.find_all(name='div', attrs={'class': 'examp dexamp'}):
                                     examples.append(self.prettify_string(tag_examples.text))
                             l2_meaning[specific_m] = examples
-                            #Synonym, antonym
-                            cur_synant = ''
-                            tag_syn_ant = html_meaning.find(name='div', attrs={'class':'xref synonyms hax dxref-w lmt-25'})
-                            if tag_syn_ant:
-                                for tag_syn_ant_item in tag_syn_ant.find_all(name='div',attrs={'class':'item lc lc1 lpb-10 lpr-10'}):
-                                    cur_synant += self.prettify_string(tag_syn_ant_item.text) if len(cur_synant) == 0 else '\n'+self.prettify_string(tag_syn_ant_item.text)
-                            l2_syn[specific_m] = cur_synant 
                         l2_word[general_m] = l2_meaning
-                        
                        
                     for html_pos_body in html_l2_tag.find_all(name='div', attrs={'class': 'pr','class': 'dsense','class':'dsense-noh'}):
                         
@@ -193,13 +183,6 @@ class CDDownloader(QObject):
                             for tag_examples in html_meaning.find_all(name='div', attrs={'class': 'examp dexamp'}):
                                     examples.append(self.prettify_string(tag_examples.text))
                             l2_meaning[specific_m] = examples
-                            #Synonym, antonym
-                            cur_synant = ''
-                            tag_syn_ant = html_meaning.find(name='div', attrs={'class':'xref synonyms hax dxref-w lmt-25'})
-                            if tag_syn_ant:
-                                for tag_syn_ant_item in tag_syn_ant.find_all(name='div',attrs={'class':'item lc lc1 lpb-10 lpr-10'}):
-                                    cur_synant += self.prettify_string(tag_syn_ant_item.text) if len(cur_synant) == 0 else '\n'+self.prettify_string(tag_syn_ant_item.text)
-                                l2_syn[specific_m] = cur_synant 
                         l2_word[general_m] = l2_meaning
                         suffix += 1
 
@@ -326,9 +309,8 @@ class CDDownloader(QObject):
 
 # This code for debugging purposes
 #ad = CDDownloader()
-#ad.language = 'en'
-#ad.user_url = 'https://dictionary.cambridge.org/dictionary/english/conflate'
-#ad.get_word_defs()
 ##ad.word = 'ad-hominem'
-
+#ad.language = 'en'
+#ad.user_url = 'https://dictionary.cambridge.org/dictionary/english/tear-up'
+#ad.get_word_defs()
 
