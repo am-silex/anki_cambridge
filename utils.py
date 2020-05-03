@@ -17,46 +17,49 @@ from PyQt5.QtWidgets import QMessageBox
 fields = ['Word','Examples','Definition','Audio','Picture','Pronunciation','Grammar','Meaning','SynonymAntonym']
 
 def fill_note(word, note):
-    note['Word'] = word.get('Word') if word.get('Word') else 'NO_WORD_VALUE'
-    # print("Filling word {}".format(word['wd']))
-    note['Examples'] = word.get('Examples') if word.get('Examples') else ''
-    note['Definition'] = word.get('Definition') if word.get('Definition') else ''
-    note['Pronunciation'] = word.get('Pronunciation') if word.get('Pronunciation') else ''
-    note['Grammar'] = word.get('Grammar') if word.get('Grammar') else ''
-    note['Meaning'] = word.get('Meaning') if word.get('Meaning') else ''
-    note['Picture'] = word.get('Picture') if word.get('Picture') else ''
+    #note['Word'] = word.get('Word') if word.get('Word') else 'NO_WORD_VALUE'
+    #note['Examples'] = word.get('Examples') if word.get('Examples') else ''
+    #note['Definition'] = word.get('Definition') if word.get('Definition') else ''
+    #note['Pronunciation'] = word.get('Pronunciation') if word.get('Pronunciation') else ''
+    #note['Grammar'] = word.get('Grammar') if word.get('Grammar') else ''
+    #note['Meaning'] = word.get('Meaning') if word.get('Meaning') else ''
+    #audio_field = ''
+    #for file in word['Sounds']:
+    #    if not file:
+    #        continue
+    #    f_entry = get_file_entry(file,note['Word'])
+    #    audio_field = audio_field + '[sound:' + unmunge_to_mediafile(f_entry)+'] '
+    #note['Audio'] = audio_field
+    ##Fetching picture
+    ##picture_name = word.get('Picture').split('/')[-1] if word.get('Picture') else ''
+    #picture_field = ''
+    #f_picture = word.get('Picture') if word.get('Picture') else ''
+    #if f_picture:
+    #    f_entry = get_file_entry(f_picture,note['Word'])
+    #    picture_field = '<img src="' + unmunge_to_mediafile(f_entry) + '">'
+    #note['Picture'] = picture_field
+    note['Word'] = word.word_title
+    note['Examples'] = "<br> ".join(word.word_examples)
+    note['Definition'] = word.word_specific
+    note['Pronunciation'] = word.word_pro_uk + ' ' + word.word_pro_us
+    note['Grammar'] = word.word_part_of_speech
+    note['Meaning'] = word.word_general
     audio_field = ''
-    for file in word['Sounds']:
-        if not file:
-            continue
-        f_entry = get_file_entry(file,note['Word'])
+    if word.word_uk_media:
+        f_entry = get_file_entry(word.word_uk_media,note['Word'])
+        audio_field = audio_field + '[sound:' + unmunge_to_mediafile(f_entry)+'] '
+    if word.word_us_media:
+        f_entry = get_file_entry(word.word_us_media,note['Word'])
         audio_field = audio_field + '[sound:' + unmunge_to_mediafile(f_entry)+'] '
     note['Audio'] = audio_field
-    picture_name = word.get('Picture').split('/')[-1] if word.get('Picture') else ''
-    #if is_old_api:
-    #    # User's choice translation has index 0, then come translations sorted by votes (higher to lower)
-    #    translations = word.get('translations')
-    #    if translations:  # apparently, there might be no translation
-    #        translation = translations[0]
-    #        if translation.get('ctx'):
-    #            note['context'] = translation['ctx']
-    #        if translation.get('pic'):
-    #            picture_name = translation['pic'].split('/')[-1]
-    #if picture_name and is_valid_ascii(picture_name) and \
-    #        is_not_default_picture(picture_name):
-    #    picture_name = get_valid_name(picture_name)
-    #    note['picture_name'] = '<img src="%s" />' % picture_name
-
-    ## TODO: Add checkbox for context
-    ##  and get it differently, since with API 1.0.1 it is not possible
-    ##  to get context at the time of getting list of words
-
-    #sound_url = word.get('pronunciation')
-    #if sound_url:
-    #    sound_name = sound_url.split('/')[-1]
-    #    sound_name = get_valid_name(sound_name)
-    #    note['sound_name'] = '[sound:%s]' % sound_name
-    ## TODO: Add user dictionaries (wordsets) as tags
+    #Fetching picture
+    #picture_name = word.get('Picture').split('/')[-1] if word.get('Picture') else ''
+    picture_field = ''
+    f_picture = word.word_image
+    if f_picture:
+        f_entry = get_file_entry(f_picture,note['Word'])
+        picture_field = '<img src="' + unmunge_to_mediafile(f_entry) + '">'
+    note['Picture'] = picture_field
     return note
 
 
@@ -169,17 +172,14 @@ def is_valid_ascii(url):
         return False
     return True
 
-
 def get_module_name():
 
     return __name__.split(".")[0]
-
 
 def get_addon_dir():
     root = mw.pm.addonFolder()
     addon_dir = os.path.join(root, get_module_name())
     return addon_dir
-
 
 def get_cookies_path():
     """
@@ -196,7 +196,6 @@ def get_cookies_path():
             # TODO: Improve error handling
             return None
     return os.path.join(uf_dir, 'cookies.txt')
-
 
 def get_config():
     # Load config from config.json file
@@ -219,8 +218,7 @@ def get_config():
             except:
                 config = None
         return config
-
-
+    
 def update_config(config):
     #if getattr(getattr(mw, "addonManager", None), "writeConfig", None):
     #    mw.addonManager.writeConfig(get_module_name(), config)
@@ -233,12 +231,39 @@ def update_config(config):
         # TODO: Improve error handling
         #pass
         raise SystemError
-
-
+    
 def get_config_dict():
     config = {}
     config['cookie'] = ''
     return config
 
+def find_note_with_url_pictures(AddonDialog):
+    query = "Picture:*https*"
+    foundCardsIDs = mw.col.findNotes(query)
+    AddonDialog.progress.setMaximum(len(foundCardsIDs))
+    n = 0
+    for f_noteID in foundCardsIDs:
+        f_note = mw.col.getNote(f_noteID)
+        f_picture = mw.cddownloader.get_tempfile_from_url(f_note['Picture'])
+        picture_name = f_note['Word'].split('/')[-1] if f_note['Word'] else ''
+        f_entry = get_file_entry(f_picture,picture_name)
+        picture_field = '<img src="' + unmunge_to_mediafile(f_entry) + '">'
+        f_note['Picture'] = picture_field 
+        f_note.flush()
+        n =+ 1
+        AddonDialog.progress.setValue(n)
+
+def prettify_string(in_str):
+    if not in_str:
+        return ''
+    in_str = re.sub(r' +',' ',in_str).strip()
+    in_str = re.sub(r'\n','',in_str).strip()
+    in_str = re.sub(r':','',in_str).strip()
+    in_str = re.sub(r'^[ABC][012]','',in_str).strip()
+    in_str = re.sub(r'^\[\sC\s\]','',in_str).strip()
+    in_str = re.sub(r'^\[\sU\s\]','',in_str).strip()
+    in_str = re.sub(r'^informal','',in_str).strip()
+    in_str = re.sub(r'^formal','',in_str).strip()
+    return in_str.strip()
 
 

@@ -9,9 +9,13 @@ Anki-2 add-on to create notes from Cambridge Dictionary
 
 """
 
+import sys
+from os.path import dirname, join
+
+sys.path.append(join(dirname(__file__), 'lib'))
+
 __version__ = "0.0.1"
 
-#from . import conflanguage
-#from . import download
 from . import main
-#from . import model
+
+

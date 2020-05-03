@@ -26,7 +26,7 @@ from ._names import *
 from .utils import *
 
 
-icons_dir = os.path.join(mw.pm.addonFolder(), 'downloadaudio', 'icons')
+icons_dir = os.path.join(mw.pm.addonFolder(), ADDON_NAME, 'icons')
 
 
 #from .download_entry import DownloadEntry, Action
@@ -52,7 +52,7 @@ class LinkDialogue(QDialog):
         u"""Build the dialog box."""
 
         self.setWindowTitle(_(u'Anki – Download definitions'))
-        self.setWindowIcon(QIcon(":/icons/anki.png"))
+        self.setWindowIcon(QIcon(os.path.join(icons_dir, 'camb_icon.png')))
         layout = QVBoxLayout()
         self.setLayout(layout)
         self.edit_word_head = QLabel()
@@ -89,64 +89,67 @@ class LinkDialogue(QDialog):
         self.setResult(QDialog.Accepted)
         self.done(QDialog.Accepted)
 
-
 class WordDefDialogue(QDialog):
     """
     A Dialog to let the user to choose defs to be added.
     """
-    def __init__(self,word_data,word):
+    def __init__(self,word_data,word,l2_meaning=None):
         self.word_data = word_data
         self.word = word
-        self.selected_defs = [] # list of selected defs (l1_word)
+        self.selected_defs = [] # list of selected words (word_entry)
         self.deletion_mark = False
         self.l2_def = None
         self.single_word = False
+        self.l2_meaning = l2_meaning
         self.set_model()
         QDialog.__init__(self)
         self.initUI()
-
 
     def initUI(self):
         u"""Build the dialog box."""
 
         self.setWindowTitle(self.word)
-        self.setWindowIcon(QIcon(":/icons/anki.png"))
+        self.setWindowIcon(QIcon(os.path.join(icons_dir, 'camb_icon.png')))
+        #self.setMaximumSize(600,200)
+        #scroll = QScrollArea()        
+        
+        #wg = QWidget()
+        #wg.setLayout(layout)
+        #wg.setMaximumSize(700,700)
+        #scroll.setWidget(wg)
+        #scroll.setParent(self)
         layout = QVBoxLayout()
-        self.setLayout(layout)   
+        self.setLayout(layout)
+        word_specific = ''
+        word_part_of_speech = ''
+        word_dictionary = ''
         # Looping through data structure
-        for l1_word in self.word_data:
-            row = 0
-            gl = QGridLayout()
-            gr = QGroupBox()
-            gr.setLayout(gl)
-            word_title = QLabel('<h3>' + l1_word['word_title'] + '</h3>')
-            gl.addWidget(word_title,row,0)
-            word_gram = QLabel('<h4>' + l1_word['word_gram'] + '</h4>')
-            gl.addWidget(word_gram,row,1)
-            #Looping through top-level meaning
-            ck_it = 0
-            self.ck_dict = {}
-            for l2_meaning, l2_def_and_example in l1_word['meanings'].items():
-                row += 1
-                #mean_checkbox = QCheckBox(l2_meaning.upper())
-                #mean_checkbox.l2_meaning = l2_meaning
-                #mean_checkbox.stateChanged.connect(self.toggle_def)
-                #ck_it += 1
-                #gl.addWidget(mean_checkbox, row, 0,1,-1)
-                for l2_def in l2_def_and_example:
+        for word_el in self.word_data:            
+            if word_dictionary != word_el.word_dictionary:
+                row = 0
+                gl = QGridLayout()
+                gr = QGroupBox()
+                gr.setTitle(word_el.word_dictionary)
+                gr.setLayout(gl)            
+                word_dictionary = word_el.word_dictionary
 
-                #for l2_def in l2_def_and_example:
-                    row += 1
-                    l2_def_check = QCheckBox(l2_def)
-                    l2_def_check.l2_def = l2_def
-                    l2_def_check.stateChanged.connect(self.toggle_def)
-                    gl.addWidget(l2_def_check, row, 0,1,-1)
-                    #for l2_examp in l2_def_and_example[l2_def]:
-                    #    row += 1
-                    #    l2_def_label = QLabel('<i>'+l2_examp+'</i>')
-                    #    l2_def_label.setIndent(10)
-                    #    gl.addWidget(l2_def_label, row, 0,1,-1)
-                    self.l2_def = l2_def
+         
+            if word_dictionary == word_el.word_dictionary and word_part_of_speech != word_el.word_part_of_speech:
+                row += 1
+                word_title = QLabel('<h3>' + word_el.word_title + '</h3>')
+                gl.addWidget(word_title,row,0)
+                word_gram = QLabel('<h4>' + word_el.word_part_of_speech + '</h4>')
+                gl.addWidget(word_gram,row,1)                
+                word_part_of_speech = word_el.word_part_of_speech
+
+            row += 1
+            word_specific = word_el.word_specific
+            l2_def_check = QCheckBox(word_specific)
+            l2_def_check.l2_def = word_specific
+            l2_def_check.word = word_el
+            l2_def_check.stateChanged.connect(self.toggle_def)
+            gl.addWidget(l2_def_check, row, 0,1,-1)
+            self.l2_def = word_specific
             layout.addWidget(gr)
 
         dialog_buttons = QDialogButtonBox(self)
@@ -161,44 +164,48 @@ class WordDefDialogue(QDialog):
             self.selected_defs.append(self.l2_def)
             self.create_selected_notes()
             self.single_word = True
+        self.setMaximumSize(700,300)
+        self.adjustSize()
 
     def toggle_def(self,state):
         sender = self.sender()
-        l2_def = sender.l2_def
+        word = sender.word
         if self.sender():
-            if l2_def in self.selected_defs:
-                self.selected_defs.remove(l2_def)
+            if word in self.selected_defs:
+                self.selected_defs.remove(word)
             else:
-                self.selected_defs.append(l2_def)
-
+                self.selected_defs.append(word)
 
     def create_selected_notes(self):
 
         if not self.selected_defs:
             mw.cddownloader.clean_up()
-            self.word_data = None
+            self.word_data = []
             self.word = None
             self.selected_defs = [] # list of selected defs (l1_word)
             return
 
-        word_to_add = self.word_data
-        for next_def in self.selected_defs:
-            for l1_word in self.word_data:
-                for l2_key, l2_value in l1_word['meanings'].items():
-                    for l3_specific_def, l3_examples in l2_value.items():
-                        if l3_specific_def == next_def:
-                            word_to_save = {}
-                            word_to_save['word_title'] = l1_word['word_title']
-                            word_to_save['word_gram'] = l1_word['word_gram']
-                            word_to_save['word_pro_uk'] = l1_word['word_pro_uk']
-                            word_to_save['word_uk_media'] = l1_word['word_uk_media']
-                            word_to_save['word_pro_us'] = l1_word['word_pro_us']
-                            word_to_save['word_us_media'] = l1_word['word_us_media']
-                            word_to_save['word_general'] = l2_key
-                            word_to_save['word_specific'] = l3_specific_def
-                            word_to_save['word_examples'] = "<br> ".join(l3_examples)
-                            word_to_save['word_image'] = l1_word['word_image']
-                            self.add_note(word_to_save)
+        for word_to_save in self.selected_defs:
+            #self.add_note(word_to_save)
+            add_word(word_to_save, self.model)
+        #word_to_add = self.word_data
+        #for next_def in self.selected_defs:
+        #    for l1_word in self.word_data:
+        #        for l2_key, l2_value in l1_word['meanings'].items():
+        #            for l3_specific_def, l3_examples in l2_value.items():
+        #                if l3_specific_def == next_def:
+        #                    word_to_save = {}
+        #                    word_to_save['word_title'] = l1_word['word_title']
+        #                    word_to_save['word_gram'] = l1_word['word_gram']
+        #                    word_to_save['word_pro_uk'] = l1_word['word_pro_uk']
+        #                    word_to_save['word_uk_media'] = l1_word['word_uk_media']
+        #                    word_to_save['word_pro_us'] = l1_word['word_pro_us']
+        #                    word_to_save['word_us_media'] = l1_word['word_us_media']
+        #                    word_to_save['word_general'] = l2_key
+        #                    word_to_save['word_specific'] = l3_specific_def
+        #                    word_to_save['word_examples'] = "<br> ".join(l3_examples)
+        #                    word_to_save['word_image'] = l1_word['word_image']
+        #                    self.add_note(word_to_save)
                             
         #for sel_def in self.selected_defs:
         #    if self.word_data[sel_def]:
@@ -206,11 +213,9 @@ class WordDefDialogue(QDialog):
         #self.close(QDialog.Accepted)
         self.deletion_mark = True
         self.done(0)
-        
        
     def set_model(self):
         self.model = prepare_model(mw.col, fields, styles.model_css)
-
 
     def add_note(self, word_to_add):
         """
@@ -229,7 +234,6 @@ class WordDefDialogue(QDialog):
         word['Picture'] = word_to_add['word_image']
 
         add_word(word, self.model)
-
 
 class AddonConfigWindow(QDialog):
     """
@@ -270,9 +274,47 @@ class AddonConfigWindow(QDialog):
         self.ledit_cookie.setText(self.config['cookie'] if self.config['cookie'] else '')
         h_layout.addWidget(self.ledit_cookie,QtCore.Qt.AlignRight)
         layout.addLayout(h_layout,QtCore.Qt.AlignTop)
+        
+        # Wordlist links
+        h_layout = QVBoxLayout()
+        h_label = QLabel()
+        #h_label.setText('Cookie:')
+        #h_layout.addWidget(h_label)
+        #h_layout.addStretch()        
+        self.wordlist_list = QListWidget()
+        if 'wordlist_links' in self.config:
+            links = self.config['wordlist_links']
+            for l in links:
+                self.wordlist_list.addItem(l)
+        self.wordlist_list.itemDoubleClicked.connect(self.wl_edit_row)
+        h_layout.addWidget(self.wordlist_list)
+        h_label = QLabel()
+        h_label.setText('Link to add:')
+        h_layout.addWidget(h_label)
+        self.ledit_wl = QLineEdit()
+        h_layout.addWidget(self.ledit_wl)
+        btn_Add_WL = QPushButton()
+        btn_Add_WL.setText('Add link')
+        btn_Add_WL.clicked.connect(self.wl_add)
+        h_layout.addWidget(btn_Add_WL)
+        layout.addLayout(h_layout,QtCore.Qt.AlignTop)
+
+        #Find and fetch all pictures instead of links
+        find_btn = QPushButton()
+        find_btn.setText('Replace all URL with pictures in deck')
+        find_btn.clicked.connect(self.find_and_fetch_pictures)
+        layout.addWidget(find_btn)
 
         # Stretcher
         layout.addStretch()
+
+        #Progress bar
+        h_layout = QHBoxLayout()
+        self.progress = QProgressBar(self)
+        self.progress.setGeometry(0,0,200,30)
+        self.progress.visbile = False
+        h_layout.addWidget(self.progress)
+        layout.addLayout(h_layout)
 
         # Bottom buttons - Ok, Cancel
         btn_bottom_layout = QHBoxLayout()
@@ -286,6 +328,11 @@ class AddonConfigWindow(QDialog):
         layout.addLayout(btn_bottom_layout)
         btn_Ok.clicked.connect(self.btn_Ok)
         btn_Cancel.clicked.connect(self.close)
+
+    def find_and_fetch_pictures(self):
+        self.progress.visible = True
+        find_note_with_url_pictures(self)
+        self.progress.visible = False
         
 
     def btn_auth_clicked(self):
@@ -294,12 +341,27 @@ class AddonConfigWindow(QDialog):
     def btn_Ok(self):
         # Fill config dict with current settings and write them to file
         self.config['cookie'] = self.ledit_cookie.text()
+        wl = []
+        for i in self.iterAllItems(self.wordlist_list):
+            wl.append(i.text())
+        self.config['wordlist_links'] = wl
         update_config(self.config)
         self.close()
 
     def btn_Cancel(self):
         self.close()
 
+    def wl_add(self):
+        self.wordlist_list.addItem(self.ledit_wl.text())
+
+    def iterAllItems(self, iterable):
+        for i in range(iterable.count()):
+            yield iterable.item(i)
+
+    def wl_edit_row(self):
+        current_item = self.wordlist_list.currentItem()
+        self.ledit_wl.setText(current_item.text())
+        self.wordlist_list.takeItem(self.wordlist_list.currentRow())
 
 class WordListLinkDialogue(QDialog):
     """
@@ -315,7 +377,7 @@ class WordListLinkDialogue(QDialog):
         u"""Build the dialog box."""
 
         self.setWindowTitle(_(u'Anki – Word list link'))
-        self.setWindowIcon(QIcon(":/icons/anki.png"))
+        self.setWindowIcon(QIcon(os.path.join(icons_dir, 'camb_icon.png')))
         layout = QVBoxLayout()
         self.setLayout(layout)
         self.edit_word_head = QLabel()
@@ -349,15 +411,17 @@ class WordListLinkDialogue(QDialog):
             return
 
         downloader = mw.cddownloader
-        all_words_in_list = downloader.get_all_words_in_list(self.user_url)
+        downloader.clear_wordlist()
+        downloader.get_all_words_in_list(self.user_url)
+        all_words_in_list = downloader.wordlist
         if all_words_in_list:
-            for cur_word in all_words_in_list:
+            for wl_entry in all_words_in_list:
                 downloader.clean_up()
-                downloader.user_url = cur_word['ref']
-                downloader.word_id = cur_word['word_id']
-                downloader.get_word_defs()
+                downloader.user_url = wl_entry.word_url
+                downloader.word_id  = wl_entry.word_id
+                downloader.get_word_defs(wl_entry.word_l2_meaning)
                 if downloader.word_data:
-                    sd = WordDefDialogue(downloader.word_data,downloader.word)
+                    sd = WordDefDialogue(downloader.word_data,downloader.word,wl_entry.word_l2_meaning)
                     if sd.single_word:
                         downloader.delete_word_from_wordlist()
                         continue
@@ -371,3 +435,37 @@ class WordListLinkDialogue(QDialog):
 
         self.setResult(QDialog.Accepted)
         self.done(QDialog.Accepted)
+
+class WParseSavedWL(QDialog):
+
+    def __init__(self):
+        self.config = get_config()
+        QDialog.__init__(self)
+        #self.initUI()
+        self.parse()
+
+    def parse(self):
+
+        if 'wordlist_links' not in self.config:
+            return
+
+        downloader = mw.cddownloader
+        downloader.clear_wordlist()
+
+        links = self.config['wordlist_links']
+        for l in links:
+            downloader.get_all_words_in_list(l)
+            all_words_in_list = downloader.wordlist
+            if all_words_in_list:
+                for wl_entry in all_words_in_list:
+                    downloader.clean_up()
+                    downloader.user_url = wl_entry.word_url
+                    downloader.word_id  = wl_entry.word_id
+                    downloader.get_word_defs(wl_entry.word_l2_meaning)
+                    if downloader.word_data:
+                        sd = WordDefDialogue(downloader.word_data,downloader.word,wl_entry.word_l2_meaning)
+                        if sd.single_word:
+                            downloader.delete_word_from_wordlist()
+                            continue
+
+        self.close()

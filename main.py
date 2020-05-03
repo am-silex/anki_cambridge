@@ -54,6 +54,12 @@ def open_main_windows_addon():
     #    #    showInfo("Unable to load config. Make sure that config.json "
     #    #             "is present and not in use by other applications")
 
+def parse_saved_wl():
+    
+    window = WParseSavedWL()
+    window.exec_()
+    
+
     
 mw.edit_cambridge_submenu = QMenu(u"&Cambridge Dictionary", mw)
 mw.form.menuEdit.addSeparator()
@@ -73,6 +79,13 @@ mw.create_notes_from_wordlist_link_action.setToolTip("Parse whole word list from
 
 mw.create_notes_from_wordlist_link_action.triggered.connect(ask_user_for_wordlist_link)
 mw.edit_cambridge_submenu.addAction(mw.create_notes_from_wordlist_link_action)
+
+# Word list - saved
+mw.parse_saved_wl_action = QAction(mw)
+mw.parse_saved_wl_action.setText("Parse user saved wordlists")
+mw.parse_saved_wl_action.setToolTip("Parse user saved wordlists")
+mw.parse_saved_wl_action.triggered.connect(parse_saved_wl)
+mw.edit_cambridge_submenu.addAction(mw.parse_saved_wl_action)
 
 # Addon settings
 mw.edit_cambridge_submenu.addSeparator()
