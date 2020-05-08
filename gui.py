@@ -9,18 +9,18 @@ Anki2 add-on to download card's fields with audio from Cambridge Dictionary
 """
 
 import os
+import time
+import queue
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import * 
 from PyQt5 import QtCore
-#QAction, QMenu, QDialog, QVBoxLayout, QLabel, QLineEdit, QGridLayout,
-#QDialogButtonBox, QCheckBox, QMessageBox
+from PyQt5.QtCore import (QThread, QObject, pyqtSignal)
 
 from aqt import mw
 from aqt.utils import tooltip
 from anki.hooks import addHook
 
-#from .processors import processor
-from .Cambridge import CDDownloader
+from .Cambridge import (CDDownloader, word_entry, wordlist_entry)
 
 from ._names import *
 from .utils import *
@@ -28,15 +28,7 @@ from .utils import *
 
 icons_dir = os.path.join(mw.pm.addonFolder(), ADDON_NAME, 'icons')
 
-
-#from .download_entry import DownloadEntry, Action
-#from .get_fields import get_note_fields, get_side_fields
-#from .language import language_code_from_card, language_code_from_editor
-#from .review_gui import review_entries
-#from .update_gui import update_data
-# DOWNLOAD_SIDE_SHORTCUT = "t"
-# DOWNLOAD_MANUAL_SHORTCUT = "Ctrl+t"
-# Place were we keep our megaphone icon.
+# These are classes for GUI dialogues
 class LinkDialogue(QDialog):
     """
     A Dialog to let the user edit the texts or change the language.
@@ -93,7 +85,7 @@ class WordDefDialogue(QDialog):
     """
     A Dialog to let the user to choose defs to be added.
     """
-    def __init__(self,word_data,word,l2_meaning=None):
+    def __init__(self,word_data,word,l2_meaning=None,wd_entry=None):
         self.word_data = word_data
         self.word = word
         self.selected_defs = [] # list of selected words (word_entry)
@@ -161,7 +153,7 @@ class WordDefDialogue(QDialog):
 
         # Automatic add single word with single def if in add_single mode
         if len(self.word_data) == 1:
-            self.selected_defs.append(self.l2_def)
+            self.selected_defs.append(self.word_data[0])
             self.create_selected_notes()
             self.single_word = True
         self.setMaximumSize(700,300)
@@ -246,6 +238,7 @@ class AddonConfigWindow(QDialog):
 
     def initUI(self):
         self.setWindowTitle('Cambridge Addon Settings')
+        self.setWindowIcon(QIcon(os.path.join(icons_dir, 'camb_icon.png')))
         layout = QVBoxLayout()
         self.setLayout(layout)
 
@@ -275,26 +268,26 @@ class AddonConfigWindow(QDialog):
         h_layout.addWidget(self.ledit_cookie,QtCore.Qt.AlignRight)
         layout.addLayout(h_layout,QtCore.Qt.AlignTop)
         
-        # Wordlist links
+        # Wordlist IDs
         h_layout = QVBoxLayout()
         h_label = QLabel()
         #h_label.setText('Cookie:')
         #h_layout.addWidget(h_label)
         #h_layout.addStretch()        
         self.wordlist_list = QListWidget()
-        if 'wordlist_links' in self.config:
-            links = self.config['wordlist_links']
+        if 'wordlist_ids' in self.config:
+            links = self.config['wordlist_ids']
             for l in links:
                 self.wordlist_list.addItem(l)
         self.wordlist_list.itemDoubleClicked.connect(self.wl_edit_row)
         h_layout.addWidget(self.wordlist_list)
         h_label = QLabel()
-        h_label.setText('Link to add:')
+        h_label.setText('ID to add:')
         h_layout.addWidget(h_label)
         self.ledit_wl = QLineEdit()
         h_layout.addWidget(self.ledit_wl)
         btn_Add_WL = QPushButton()
-        btn_Add_WL.setText('Add link')
+        btn_Add_WL.setText('Add ID')
         btn_Add_WL.clicked.connect(self.wl_add)
         h_layout.addWidget(btn_Add_WL)
         layout.addLayout(h_layout,QtCore.Qt.AlignTop)
@@ -344,7 +337,7 @@ class AddonConfigWindow(QDialog):
         wl = []
         for i in self.iterAllItems(self.wordlist_list):
             wl.append(i.text())
-        self.config['wordlist_links'] = wl
+        self.config['wordlist_ids'] = wl
         update_config(self.config)
         self.close()
 
@@ -436,36 +429,119 @@ class WordListLinkDialogue(QDialog):
         self.setResult(QDialog.Accepted)
         self.done(QDialog.Accepted)
 
-class WParseSavedWL(QDialog):
+class WParseSavedWL(QObject):
 
     def __init__(self):
+        super(WParseSavedWL, self).__init__()
         self.config = get_config()
-        QDialog.__init__(self)
-        #self.initUI()
-        self.parse()
+        mw.wordlist_queue = queue.Queue()
+        self.collection = mw.col
+        self.word_to_fetch = '0'
+        self.fetched = 0
 
     def parse(self):
 
-        if 'wordlist_links' not in self.config:
+        if 'wordlist_ids' not in self.config:
             return
 
-        downloader = mw.cddownloader
-        downloader.clear_wordlist()
+        t = self.thread = FetchThread(0,True)
+        t._event.connect(self.onEvent)
+        t._add_word_event.connect(self.on_add_word)        
+        t._msg.connect(self.show_message)
+        self.thread.start()
+        #while not self.thread.isFinished():
+        #    self.thread.wait(100)
+        #    tooltip(
+        #        _('Fetching is working, wait...'),
+        #        parent=mw,
+        #    )
 
-        links = self.config['wordlist_links']
-        for l in links:
-            downloader.get_all_words_in_list(l)
-            all_words_in_list = downloader.wordlist
-            if all_words_in_list:
-                for wl_entry in all_words_in_list:
-                    downloader.clean_up()
-                    downloader.user_url = wl_entry.word_url
-                    downloader.word_id  = wl_entry.word_id
-                    downloader.get_word_defs(wl_entry.word_l2_meaning)
-                    if downloader.word_data:
-                        sd = WordDefDialogue(downloader.word_data,downloader.word,wl_entry.word_l2_meaning)
-                        if sd.single_word:
-                            downloader.delete_word_from_wordlist()
-                            continue
 
-        self.close()
+    def onEvent(self, evt, *args):
+        n = 1
+        if evt == 'spawn_other_threads':
+            self.word_to_fetch = args[0]
+            for n in range(1,10):
+                t = FetchThread(5)
+                t._event.connect(self.onEvent)
+                t._add_word_event.connect(self.on_add_word)        
+                t._msg.connect(self.show_message)
+                setattr(self, 'thread'+str(n), t)
+                thread_to_start = getattr(self, 'thread'+str(n))
+                thread_to_start.start()
+                n += 1
+        if evt == 'thread_finished': 
+            if mw.wordlist_queue.empty():
+                return
+            for n in range(1,10):
+                thread_to_restart = getattr(self, 'thread'+str(n), None)
+                if thread_to_restart != None and thread_to_restart.isFinished():
+                    thread_to_restart.start(5)
+
+    def show_message(self, msg):
+        tooltip(
+                _(str(msg)),
+                parent=mw,
+            )
+
+    def on_add_word(self, word_entry, wordlist_entry):
+        add_word_to_collection(word_entry,self.collection)
+        mw.cddownloader.delete_word_from_wordlist(wordlist_entry)
+        self.fetched += 1
+        tooltip(
+                _(str(self.fetched) +' / '+str(self.word_to_fetch)),
+                parent=mw,
+            )
+
+class FetchThread(QThread):
+
+    _event = pyqtSignal(str, str)
+    _msg = pyqtSignal(str)
+    _add_word_event = pyqtSignal(word_entry, wordlist_entry)
+
+    def __init__(self, max_words = 5, fetch_wordlist = False):
+        QThread.__init__(self)
+        self.config = get_config()
+        self.downloader = CDDownloader()
+        self.max_words = max_words
+        self.fetch_wordlist = fetch_wordlist
+
+    def run(self):
+        if self.fetch_wordlist:
+            self.sendMessage('Starting fetching wordlists')
+            self.downloader = CDDownloader()
+            self.downloader.clean_up()
+            for wordlist_id in self.config['wordlist_ids']:
+                self.downloader.fetch_wordlist_entries(wordlist_id)
+        
+            for wl_entry in self.downloader.wordlist:
+                mw.wordlist_queue.put(wl_entry)
+            self.fireEvent('spawn_other_threads',str(mw.wordlist_queue.qsize()))
+
+        #self.sendMessage('Starting fetching ' + str(mw.wordlist_queue.qsize())+' entries')
+        n = 0
+        while n < self.max_words and  not mw.wordlist_queue.empty():
+            wl_entry = mw.wordlist_queue.get()
+            self.downloader.clean_up()
+            self.downloader.wordlist_entry = wl_entry 
+            self.downloader.user_url = wl_entry.word_url
+            self.downloader.word_id  = wl_entry.word_id
+            self.downloader.get_word_defs(wl_entry.definition)
+            if self.downloader.word_data:
+                wd_entry = self.downloader.find_word_by_definition(wl_entry.definition)
+                if wd_entry != None:
+                    self.addWordEvent(wd_entry, wl_entry)
+            n += 1
+
+
+        self.fireEvent('thread_finished')
+
+    def fireEvent(self, evt, args=''):
+        self._event.emit(evt, args)
+
+    def sendMessage(self, msg):
+        self._msg.emit(msg)
+
+    def addWordEvent(self,wd_entry, wl_entry):
+        self._add_word_event.emit(wd_entry, wl_entry)
+

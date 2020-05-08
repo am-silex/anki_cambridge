@@ -84,9 +84,15 @@ def unmunge_to_mediafile(dl_entry):
     Determine a free media name and move the data there from the
     tempfile.
     """
-    media_path, media_file_name = free_media_name(
-        dl_entry.base_name, dl_entry.file_extension)
-    shutil.move(dl_entry.file_path, media_path)
+    try:
+        media_path, media_file_name = free_media_name(
+            dl_entry.base_name, dl_entry.file_extension)
+        shutil.move(dl_entry.file_path, media_path)
+    except :
+        media_path =''
+        media_file_name =''
+        pass
+    
     return media_file_name
 
 

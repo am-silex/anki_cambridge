@@ -16,52 +16,38 @@ from PyQt5.QtWidgets import QMessageBox
 
 fields = ['Word','Examples','Definition','Audio','Picture','Pronunciation','Grammar','Meaning','SynonymAntonym']
 
-def fill_note(word, note):
-    #note['Word'] = word.get('Word') if word.get('Word') else 'NO_WORD_VALUE'
-    #note['Examples'] = word.get('Examples') if word.get('Examples') else ''
-    #note['Definition'] = word.get('Definition') if word.get('Definition') else ''
-    #note['Pronunciation'] = word.get('Pronunciation') if word.get('Pronunciation') else ''
-    #note['Grammar'] = word.get('Grammar') if word.get('Grammar') else ''
-    #note['Meaning'] = word.get('Meaning') if word.get('Meaning') else ''
-    #audio_field = ''
-    #for file in word['Sounds']:
-    #    if not file:
-    #        continue
-    #    f_entry = get_file_entry(file,note['Word'])
-    #    audio_field = audio_field + '[sound:' + unmunge_to_mediafile(f_entry)+'] '
-    #note['Audio'] = audio_field
-    ##Fetching picture
-    ##picture_name = word.get('Picture').split('/')[-1] if word.get('Picture') else ''
-    #picture_field = ''
-    #f_picture = word.get('Picture') if word.get('Picture') else ''
-    #if f_picture:
-    #    f_entry = get_file_entry(f_picture,note['Word'])
-    #    picture_field = '<img src="' + unmunge_to_mediafile(f_entry) + '">'
-    #note['Picture'] = picture_field
-    note['Word'] = word.word_title
-    note['Examples'] = "<br> ".join(word.word_examples)
-    note['Definition'] = word.word_specific
-    note['Pronunciation'] = word.word_pro_uk + ' ' + word.word_pro_us
-    note['Grammar'] = word.word_part_of_speech
-    note['Meaning'] = word.word_general
+def fill_note(word_entry, note):
+
+    note['Word']            = word_entry.word_title
+    note['Examples']        = "<br> ".join(word_entry.word_examples)
+    note['Definition']      = word_entry.word_specific
+    note['Pronunciation']   = word_entry.word_pro_uk + ' ' + word_entry.word_pro_us
+    note['Grammar']         = word_entry.word_part_of_speech
+    note['Meaning']         = word_entry.word_general
     audio_field = ''
-    if word.word_uk_media:
-        f_entry = get_file_entry(word.word_uk_media,note['Word'])
-        audio_field = audio_field + '[sound:' + unmunge_to_mediafile(f_entry)+'] '
-    if word.word_us_media:
-        f_entry = get_file_entry(word.word_us_media,note['Word'])
-        audio_field = audio_field + '[sound:' + unmunge_to_mediafile(f_entry)+'] '
+    if word_entry.word_uk_media:
+        try:
+            f_entry = get_file_entry(word_entry.word_uk_media,note['Word'])
+            audio_field = audio_field + '[sound:' + unmunge_to_mediafile(f_entry)+'] '
+        except :
+            pass
+    try:
+        if word_entry.word_us_media:
+            f_entry = get_file_entry(word_entry.word_us_media,note['Word'])
+            audio_field = audio_field + '[sound:' + unmunge_to_mediafile(f_entry)+'] '
+    except :
+        pass        
+    
     note['Audio'] = audio_field
     #Fetching picture
     #picture_name = word.get('Picture').split('/')[-1] if word.get('Picture') else ''
     picture_field = ''
-    f_picture = word.word_image
+    f_picture = word_entry.word_image
     if f_picture:
         f_entry = get_file_entry(f_picture,note['Word'])
         picture_field = '<img src="' + unmunge_to_mediafile(f_entry) + '">'
     note['Picture'] = picture_field
     return note
-
 
 def add_word(word, model):
     # TODO: Use picture_name and sound_name to check
@@ -79,6 +65,15 @@ def add_word(word, model):
             #note_dupes = note_dupes1 + note_dupes2
     collection.addNote(note)
    
+def add_word_to_collection(word_entry, collection):
+
+    model = prepare_model(mw.col, fields, styles.model_css)
+    note = notes.Note(collection, model)
+    note = fill_note(word_entry, note)
+    
+    collection.addNote(note)
+
+
     #if not dupes and not note_dupes:
     #    collection.addNote(note)
     ## TODO: Update notes if translation or tags (user wordsets) changed
@@ -258,12 +253,7 @@ def prettify_string(in_str):
         return ''
     in_str = re.sub(r' +',' ',in_str).strip()
     in_str = re.sub(r'\n','',in_str).strip()
-    in_str = re.sub(r':','',in_str).strip()
-    in_str = re.sub(r'^[ABC][012]','',in_str).strip()
-    in_str = re.sub(r'^\[\sC\s\]','',in_str).strip()
-    in_str = re.sub(r'^\[\sU\s\]','',in_str).strip()
-    in_str = re.sub(r'^informal','',in_str).strip()
-    in_str = re.sub(r'^formal','',in_str).strip()
+    in_str = re.sub(r':','',in_str).strip()    
     return in_str.strip()
 
 

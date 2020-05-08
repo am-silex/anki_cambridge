@@ -347,3 +347,6 @@ _old/
 .vs
 env/
 *.sln
+config.json
+meta.json
+word_model.txt

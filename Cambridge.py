@@ -18,10 +18,11 @@ from io import StringIO, BytesIO
 import gzip
 import queue
 import copy
+import json
 
 
 # project libs
-#from .utils import *
+from .utils import *
 
 class CDDownloader(QObject):
     """
@@ -47,7 +48,11 @@ class CDDownloader(QObject):
         self.wordlist_id = ''
         self.word_id = ''
         self.wordlist = []
+        self.wordlist_entry = None
         self.words_queue = queue.Queue()
+        #Definitions
+        self.cambridge_plus_url = 'https://dictionary.cambridge.org/plus/'
+        self.cambridge_plus_api_url = 'https://dictionary.cambridge.org/plus/api/'
 
     def get_word_defs(self,only_this_meaning=None):
 
@@ -57,8 +62,7 @@ class CDDownloader(QObject):
         if not word and not self.user_url:
             return
         
-        self.word_data = []
-        self.word_media = []
+        self.word_data.clear()
         # self.maybe_get_icon()
         # Do our parsing with BeautifulSoup
 
@@ -68,25 +72,27 @@ class CDDownloader(QObject):
             req = urllib.request.Request(self.user_url)
         else:
             req = urllib.request.Request(self.url + urllib.parse.quote(word.encode('utf-8')))
-        req.add_header("User-Agent",self.user_agent) 
-        req.add_header('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3')
+        #req.add_header("User-Agent",self.user_agent) 
+        #req.add_header('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3')
         req.add_header('Accept-Language', 'en-US')
-        req.add_header('Accept-Encoding', 'gzip, deflate, br')
+        #req.add_header('Accept-Encoding', 'gzip, deflate, br')
 
         try:
             response = urllib.request.urlopen(req)
-        except HTTPError as e:
+        except urllib.error.HTTPError as e:
                 QMessageBox.warning(mw,'URL error',e.reason.strip())
-        except URLError as e:
+                return
+        except urllib.error.URLError as e:
                 QMessageBox.warning(mw,'URL error',e.reason.strip())
-        if response.info().get('Content-Encoding') == 'gzip':
-            response_zip = response.read()
-            buf = BytesIO(response_zip)
-            f = gzip.GzipFile(fileobj=buf)
-            data = f.read()
-            html_doc = data.decode()
-        else:
-            html_doc = response.read()
+                return
+        #if response.info().get('Content-Encoding') == 'gzip':
+        #    response_zip = response.read()
+        #    buf = BytesIO(response_zip)
+        #    f = gzip.GzipFile(fileobj=buf)
+        #    data = f.read()
+        #    html_doc = data.decode()
+        #else:
+        html_doc = response.read()
 
         word_soup = BeautifulSoup(html_doc, "html.parser")
 
@@ -312,7 +318,7 @@ class CDDownloader(QObject):
         request.add_header('User-agent', self.user_agent)
         try:
             response = urllib.request.urlopen(request)
-        except URLError as e:
+        except urllib.error.URLError as e:
             QMessageBox.warning(mw,'URL error',e.reason.strip())
         
         if 200 != response.code:
@@ -320,20 +326,22 @@ class CDDownloader(QObject):
         return response.read()
 
     def clean_up(self):
-        for word in self.word_data:
-            tmp = word['word_us_media']
-            if os.path.exists(tmp):
-                try:
-                    os.remove(tmp)
-                except:
-                    pass
+        #for word in self.word_data:
+        #    tmp = word['word_us_media']
+        #    if os.path.exists(tmp):
+        #        try:
+        #            os.remove(tmp)
+        #        except:
+        #            pass
         self.user_url = ''
         self.word = ''
-        self.word_data = []
+        self.word_data.clear()
         self.word_media = {}
+        self.wordlist.clear()
         self.word_id = ''
-        while self.words_queue.not_empty:
-            self.words_queue.get()
+        self.wordlist_entry = None
+        #while self.words_queue.not_empty:
+        #    self.words_queue.get()
 
     def get_file_entry(self,file,base_name):
         file_entry = {}
@@ -349,10 +357,9 @@ class CDDownloader(QObject):
             return None
         if config['cookie'] is None:
             return None
+        
+        self.wordlist.clear()
 
-        #config = {'cookie':'_ga=GA1.3.524435349.1588174459; _fbp=fb.1.1588174461106.1230392959; amp-access=amp-Qrmz-u2Xb_Y3cMl2Q3bfng; preferredDictionaries="english-russian,english,british-grammar,english-polish"; gig_canary=false; gig_canary_ver=10883-5-26471970; gig_bootstrap_3_1Rly-IzDTFvKO75hiQQbkpInsqcVx6RBnqVUozkm1OVH_QRzS-xI3Cwj7qq7hWv5=_gigya_ver3; glt_3_1Rly-IzDTFvKO75hiQQbkpInsqcVx6RBnqVUozkm1OVH_QRzS-xI3Cwj7qq7hWv5=st2.s.AcbHV1W6Uw.RbXpvOop7O50iQKJRETZjNI5HBNexcnW9PpKxJLbfkvRQH9KsxsPKPSBDq0u8uVwFrP1gWTJatV716R7MaYeED9XMoP_FtRl7538RguQK8o.MBBFBrIX2fepHP9KC_0tfgwm0vKlwb7YKTFdidwHl-MeCgIO_23-S1YCvjFlNQqduKyVOCBOoJ_jeiPZaf7HHg.sc3%7CUUID%3D08796647443945aa83ff72063b318baa; glt_3_1Rly-IzDTFvKO75hiQQbkpInsqcVx6RBnqVUozkm1OVH_QRzS-xI3Cwj7qq7hWv5=st2.s.AcbHV1W6Uw.RbXpvOop7O50iQKJRETZjNI5HBNexcnW9PpKxJLbfkvRQH9KsxsPKPSBDq0u8uVwFrP1gWTJatV716R7MaYeED9XMoP_FtRl7538RguQK8o.MBBFBrIX2fepHP9KC_0tfgwm0vKlwb7YKTFdidwHl-MeCgIO_23-S1YCvjFlNQqduKyVOCBOoJ_jeiPZaf7HHg.sc3%7CUUID%3D08796647443945aa83ff72063b318baa; _gig_llp=googleplus; _gig_llu=Alexey; username=Alexey+Morar; logged=logged; remember-me=Z29vZ2xlcGx1cy0xMDk3MjYwMzY5NDU2MjAxNTU3MzE6MTU4OTUyODY3MTE1ODplOWY2NzFlMWYwYTMzNTJkM2JlZGUwNmExNjk3M2E4YQ; beta-redesign=active; _gid=GA1.3.1075438070.1588319079; XSRF-TOKEN=1036d3f0-5421-411a-a861-c2e46af66e38; JSESSIONID=970C4AF288089261DF9D1F8F74AE2DF8-n1'}
-
-        #all_words_in_list = []
         req = urllib.request.Request(wordlist_link)
 
         #req.add_header("User-Agent",USER_AGENT)
@@ -394,31 +401,95 @@ class CDDownloader(QObject):
             wl_entry = wordlist_entry(word,ref,word_l2_meaning,dataWordID)
             self.wordlist.append(wl_entry)
         driver.quit()
+    
+    def fetch_wordlist_entries(self, wordlist_id):
+
+        config = get_config()
+        if config is None:
+            return None
+        if config['cookie'] is None:
+            return None
+        
+
+        for n in range(100):
             
-    def clear_wordlist(self):
-        self.wordlist.clear()
+            # https://dictionary.cambridge.org/plus/wordlist/21215803/entries/100/
+        
+            url_for_request = urllib.parse.urljoin(self.base_url,'plus/wordlist/')
+            url_for_request = urllib.parse.urljoin(url_for_request,str(wordlist_id)+'/entries/')
+            url_for_request = urllib.parse.urljoin(url_for_request,str(n)+'/')        
 
-    def delete_word_from_wordlist(self):
-        if self.wordlist_id and self.word_id:
-            config = get_config()
-            if config is None:
-                return None
-            if config['cookie'] is None:
-                return None
-
-            req = urllib.request.Request(CAMBRIDGE_API_BASE+'deleteWordlistEntry')
-            req.add_header('Content-Type','application/json')
-
+            req = urllib.request.Request(url_for_request)
             req.add_header('Accept-Language', 'en-US')
-            req.add_header('Cookie', config['cookie'])
-            data = json.dumps({'id': self.word_id, 'wordlistId': self.wordlist_id})
-            data = data.encode('ascii')
+            req.add_header('Accept', 'application/json')            
+            req.add_header('Cookie', config['cookie'])            
+
             try:
-                r = urllib.request.urlopen(req, data)
-            except HTTPError as e:
-                QMessageBox.warning(mw,'URL error',e.reason.strip())
-            except URLError as e:
-                QMessageBox.warning(mw,'URL error',e.reason.strip())
+                response = urllib.request.urlopen(req)
+            except urllib.request.HTTPError as e:
+                    QMessageBox.warning(mw,'URL error',e.reason.strip())
+                    return
+            except urllib.request.URLError as e:
+                    QMessageBox.warning(mw,'URL error',e.reason.strip())
+                    return
+
+            try:
+                word_list_json = json.loads(response.read())
+                if not word_list_json:
+                    break
+            except e:
+                QMessageBox.warning(mw,'Request response error',str(e))
+                return
+            
+            for word_in_response in word_list_json:
+                wl_entry = wordlist_entry()
+                wl_entry.wordlist_id = word_in_response['wordlistId']
+                wl_entry.word_id = word_in_response['id']
+                wl_entry.word_url = word_in_response['entryUrl']
+                wl_entry.definition = word_in_response['definition']
+                wl_entry.soundUKMp3 = word_in_response['soundUKMp3']
+                wl_entry.soundUSMp3 = word_in_response['soundUSMp3']
+                wl_entry.dictCode = word_in_response['dictCode']
+                self.wordlist.append(wl_entry)
+                #{
+                #"id": 26061590,
+                #"entryId": "walk-on-part",
+                #"headword": "walk-on part",
+                #"senseId": "ID_00035581_01",
+                #"dictCode": "English",
+                #"definition": "A walk-on part in a play is a very small part in which the actor is on the stage for a short time and speaks very few or no words.",
+                #"translation": "",
+                #"pos": "noun",
+                #"soundUK": "/CUK01223",
+                #"soundUS": "/CUS02231",
+                #"soundUKMp3": "https://dictionary.cambridge.org/media/english/uk_pron/c/cuk/cuk01/cuk01223.mp3",
+                #"soundUKOgg": "https://dictionary.cambridge.org/media/english/uk_pron_ogg/c/cuk/cuk01/cuk01223.ogg",
+                #"soundUSMp3": "https://dictionary.cambridge.org/media/english/us_pron/c/cus/cus02/cus02231.mp3",
+                #"soundUSOgg": "https://dictionary.cambridge.org/media/english/us_pron_ogg/c/cus/cus02/cus02231.ogg",
+                #"wordlistId": 21215803,
+                #"entryUrl": "https://dictionary.cambridge.org/dictionary/english/walk-on-part"
+                #},
+      
+    def delete_word_from_wordlist(self, wl_entry):
+        config = get_config()
+        if config is None:
+            return None
+        if config['cookie'] is None:
+            return None
+
+        req = urllib.request.Request(self.cambridge_plus_api_url+'deleteWordlistEntry')
+        req.add_header('Content-Type','application/json')
+
+        req.add_header('Accept-Language', 'en-US')
+        req.add_header('Cookie', config['cookie'])
+        data = json.dumps({'id': wl_entry.word_id, 'wordlistId': wl_entry.wordlist_id})
+        data = data.encode('ascii')
+        try:
+            r = urllib.request.urlopen(req, data)
+        except urllib.error.HTTPError as e:
+            QMessageBox.warning(mw,'URL error',e.reason.strip())
+        except urllib.error.URLError as e:
+            QMessageBox.warning(mw,'URL error',e.reason.strip())
 
     def get_dict_name(self,dict_id):
 
@@ -431,16 +502,27 @@ class CDDownloader(QObject):
         else:
             return ''
 
+    def find_word_by_definition(self, definition):
+        for wd_entry in self.word_data:
+            if wd_entry.word_specific == definition:
+                return self.word_data.pop()
+        return None
+
 class wordlist_entry():
     """
     This class represent a single entry from Cambridge Wordlist.
     """
 
-    def __init__(self,word = None, ref = None, l2_meaning = None, dataWordID = None):
+    def __init__(self,word = None, ref = None, l2_meaning = None, dataWordID = None, wordlist_id = None):
+        self.wordlist_id = wordlist_id
         self.word = word
         self.word_url = ref
         self.word_l2_meaning = l2_meaning
         self.word_id = dataWordID
+        self.definition = l2_meaning
+        self.dictCode = ''
+        self.soundUKMp3 = ''
+        self.soundUSMp3 = ''
   
 class word_entry():
     # word_title, word_gram, word_pro_uk, word_pro_us, word_uk_media, word_us_media, word_image, meanings
@@ -460,13 +542,13 @@ class word_entry():
         self.word_examples = []
 
 
-def prettify_string(in_str):
-    if not in_str:
-        return ''
-    in_str = re.sub(r' +',' ',in_str).strip()
-    in_str = re.sub(r'\n','',in_str).strip()
-    in_str = re.sub(r':','',in_str).strip()    
-    return in_str.strip()
+#def prettify_string(in_str):
+#    if not in_str:
+#        return ''
+#    in_str = re.sub(r' +',' ',in_str).strip()
+#    in_str = re.sub(r'\n','',in_str).strip()
+#    in_str = re.sub(r':','',in_str).strip()    
+#    return in_str.strip()
 
 # This code for debugging purposes
 #ad = CDDownloader()
@@ -480,5 +562,7 @@ def prettify_string(in_str):
 ## This code for testing with WebDriver
 #ad = CDDownloader()
 #ad.language = 'en'
-#ad.user_url = 'https://dictionary.cambridge.org/dictionary/english/tear-up'
-#ad.get_all_words_in_list('https://dictionary.cambridge.org/plus/wordlist/21215803_cald')
+##ad.user_url = 'https://dictionary.cambridge.org/dictionary/english/tear-up'
+##ad.get_all_words_in_list('https://dictionary.cambridge.org/plus/wordlist/21215803_cald')
+#ad.fetch_wordlist_entries('21215803')
+#ad = None

@@ -56,8 +56,8 @@ def open_main_windows_addon():
 
 def parse_saved_wl():
     
-    window = WParseSavedWL()
-    window.exec_()
+    mw.wl_pareser = WParseSavedWL()
+    mw.wl_pareser.parse()
     
 
     
@@ -72,18 +72,18 @@ mw.create_notes_from_link_action.setShortcut(CREATE_NEW_NOTES_SHORTCUT)
 
 mw.create_notes_from_link_action.triggered.connect(ask_user_for_link)
 mw.edit_cambridge_submenu.addAction(mw.create_notes_from_link_action)
-# Word list
-mw.create_notes_from_wordlist_link_action = QAction(mw)
-mw.create_notes_from_wordlist_link_action.setText("Parse user wordlist from link")
-mw.create_notes_from_wordlist_link_action.setToolTip("Parse whole word list from provided link.")
+## Word list
+#mw.create_notes_from_wordlist_link_action = QAction(mw)
+#mw.create_notes_from_wordlist_link_action.setText("Parse user wordlist from link")
+#mw.create_notes_from_wordlist_link_action.setToolTip("Parse whole word list from provided link.")
 
-mw.create_notes_from_wordlist_link_action.triggered.connect(ask_user_for_wordlist_link)
-mw.edit_cambridge_submenu.addAction(mw.create_notes_from_wordlist_link_action)
+#mw.create_notes_from_wordlist_link_action.triggered.connect(ask_user_for_wordlist_link)
+#mw.edit_cambridge_submenu.addAction(mw.create_notes_from_wordlist_link_action)
 
 # Word list - saved
 mw.parse_saved_wl_action = QAction(mw)
-mw.parse_saved_wl_action.setText("Parse user saved wordlists")
-mw.parse_saved_wl_action.setToolTip("Parse user saved wordlists")
+mw.parse_saved_wl_action.setText("Fetch new words from user wordlists")
+mw.parse_saved_wl_action.setToolTip("Fetch new words from user wordlists")
 mw.parse_saved_wl_action.triggered.connect(parse_saved_wl)
 mw.edit_cambridge_submenu.addAction(mw.parse_saved_wl_action)
 
