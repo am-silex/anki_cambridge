@@ -25,8 +25,9 @@ from .Cambridge import (CDDownloader, word_entry, wordlist_entry)
 from ._names import *
 from .utils import *
 
+#ADDON_FOLDER = addon_meta['dir_name'] if addon_metaS['dir_name'] else ''
 
-icons_dir = os.path.join(mw.pm.addonFolder(), ADDON_NAME, 'icons')
+icons_dir = os.path.join(mw.pm.addonFolder(), 'icons')
 
 # These are classes for GUI dialogues
 class LinkDialogue(QDialog):

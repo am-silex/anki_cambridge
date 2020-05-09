@@ -428,11 +428,12 @@ class CDDownloader(QObject):
                 response = urllib.request.urlopen(req)
             except urllib.request.HTTPError as e:
                     QMessageBox.warning(mw,'URL error',e.reason.strip())
+                    break
                     return
             except urllib.request.URLError as e:
                     QMessageBox.warning(mw,'URL error',e.reason.strip())
+                    break
                     return
-
             try:
                 word_list_json = json.loads(response.read())
                 if not word_list_json:
