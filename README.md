@@ -10,6 +10,8 @@ What it's done (so far):
 Please, follow these links for quick visual how-to guide.
 https://clip2net.com/s/47qAHnb
 https://clip2net.com/s/47qAIma
+Your own cookie you can extract, for example, from web browser - Chrome - F12 and refresh page on cambridge 
+https://c2n.me/47syFu7
 
 To do (contributors are welcome):
  - OpenID authorization - through Google/Facebook
