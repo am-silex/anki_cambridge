@@ -350,3 +350,6 @@ env/
 config.json
 meta.json
 word_model.txt
+.gitattributes
+.gitignore
+snippets.txt
