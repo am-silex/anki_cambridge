@@ -148,10 +148,12 @@ class WordDefDialogue(QDialog):
             layout.addWidget(gr)
 
         dialog_buttons = QDialogButtonBox(self)
+        dialog_buttons.addButton(QDialogButtonBox.SaveAll)
         dialog_buttons.addButton(QDialogButtonBox.Cancel)
         dialog_buttons.addButton(QDialogButtonBox.Ok)
-        dialog_buttons.accepted.connect(self.create_selected_notes)
-        dialog_buttons.rejected.connect(self.reject)
+        dialog_buttons.button(QDialogButtonBox.Cancel).clicked.connect(self.create_selected_notes)
+        dialog_buttons.button(QDialogButtonBox.Ok).clicked.connect(self.reject)
+        dialog_buttons.button(QDialogButtonBox.SaveAll).clicked.connect(self.save_all)
         layout.addWidget(dialog_buttons)
 
         # Automatic add single word with single def if in add_single mode
@@ -218,6 +220,7 @@ class WordDefDialogue(QDialog):
         to fill it out inside the main thread
 
         """
+        QMessageBox.warning(mw,'Link is not provided',str(word_to_add))
         word = {}
         word['Word'] = word_to_add['word_title'] 
         word['Grammar'] = word_to_add['word_gram']
@@ -229,6 +232,12 @@ class WordDefDialogue(QDialog):
         word['Picture'] = word_to_add['word_image']
 
         add_word(word, self.model)
+
+    def save_all(self):
+        for wd_entry in self.word_data:
+            add_word(wd_entry, self.model)
+        self.done(0)
+
 
 class AddonConfigWindow(QDialog):
     """
