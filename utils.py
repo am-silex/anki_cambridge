@@ -248,12 +248,6 @@ def find_note_with_url_pictures(AddonDialog):
         n =+ 1
         AddonDialog.progress.setValue(n)
 
-def prettify_string(in_str):
-    if not in_str:
-        return ''
-    in_str = re.sub(r' +',' ',in_str).strip()
-    in_str = re.sub(r'\n','',in_str).strip()
-    in_str = re.sub(r':','',in_str).strip()    
-    return in_str.strip()
+
 
 

@@ -11,16 +11,18 @@ Anki2 add-on to download card's fields with audio from Cambridge Dictionary
 import os
 import time
 import queue
+import traceback
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import * 
-from PyQt5 import QtCore
+from PyQt5 import QtCore 
 from PyQt5.QtCore import (QThread, QObject, pyqtSignal)
 
 from aqt import mw
-from aqt.utils import tooltip
+from aqt.utils import askUserDialog, showInfo, showText, showWarning, tooltip
 from anki.hooks import addHook
 
 from .Cambridge import (CDDownloader, word_entry, wordlist_entry)
+from urllib.error import *
 
 from ._names import *
 from .utils import *
@@ -357,192 +359,222 @@ class AddonConfigWindow(QDialog):
         self.ledit_wl.setText(current_item.text())
         self.wordlist_list.takeItem(self.wordlist_list.currentRow())
 
-class WordListLinkDialogue(QDialog):
-    """
-    A Dialog to let the user enter link for word list.
-    """
-    def __init__(self, parent=None):
-        self.user_url = ''
-        QDialog.__init__(self)
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose, True)
-        self.initUI()
-
-    def initUI(self):
-        u"""Build the dialog box."""
-
-        self.setWindowTitle(_(u'Anki – Word list link'))
-        self.setWindowIcon(QIcon(os.path.join(icons_dir, 'camb_icon.png')))
-        layout = QVBoxLayout()
-        self.setLayout(layout)
-        self.edit_word_head = QLabel()
-
-        self.edit_word_head.setText(_('''<h4>Enter link for parsing</h4>'''))
-        bold_font = QFont()
-        bold_font.setBold(True)
-        self.edit_word_head.setFont(bold_font)
-        layout.addWidget(self.edit_word_head)
-        
-        self.link_editor = QLineEdit()
-        self.link_editor.placeholderText = 'Enter your link here'
-        layout.addWidget(self.link_editor)
-        # Options
-        self.ck_skip_multidef_words = QCheckBox('Skip milti-def words')
-        layout.addWidget(self.ck_skip_multidef_words)
-
-        dialog_buttons = QDialogButtonBox(self)
-        dialog_buttons.addButton(QDialogButtonBox.Cancel)
-        dialog_buttons.addButton(QDialogButtonBox.Ok)
-        dialog_buttons.accepted.connect(self.parse_word_list_from_link)
-        dialog_buttons.rejected.connect(self.reject)
-        layout.addWidget(dialog_buttons)
-        self.link_editor.setFocus()
-
-    def parse_word_list_from_link(self):
-
-        self.user_url = self.link_editor.text()
-        if not self.user_url:
-            QMessageBox.warning(mw,'Link is not provided','Please, provide a link for you word list')
-            return
-
-        downloader = mw.cddownloader
-        downloader.clear_wordlist()
-        downloader.get_all_words_in_list(self.user_url)
-        all_words_in_list = downloader.wordlist
-        if all_words_in_list:
-            for wl_entry in all_words_in_list:
-                downloader.clean_up()
-                downloader.user_url = wl_entry.word_url
-                downloader.word_id  = wl_entry.word_id
-                downloader.get_word_defs(wl_entry.word_l2_meaning)
-                if downloader.word_data:
-                    sd = WordDefDialogue(downloader.word_data,downloader.word,wl_entry.word_l2_meaning)
-                    if sd.single_word:
-                        downloader.delete_word_from_wordlist()
-                        continue
-                    if self.ck_skip_multidef_words.checkState() == QtCore.Qt.Checked:
-                        continue
-                    sd.exec_()
-                    if sd.deletion_mark:
-                        downloader.delete_word_from_wordlist()
-            self.close()
-                        
-
-        self.setResult(QDialog.Accepted)
-        self.done(QDialog.Accepted)
-
 class WParseSavedWL(QObject):
+
+    instance = None
 
     def __init__(self):
         super(WParseSavedWL, self).__init__()
         self.config = get_config()
-        mw.wordlist_queue = queue.Queue()
         self.collection = mw.col
         self.word_to_fetch = '0'
         self.fetched = 0
+        self.need_to_stop = False
+        self.wordlist_queue = queue.Queue()
+
+    def __call__(self, *pargs, **kargs):
+        if instance is None:
+            instance=super().__call__(*args, **kw)
+        return instance
 
     def parse(self):
 
         if 'wordlist_ids' not in self.config:
             return
 
-        t = self.thread = FetchThread(0,True)
+        t = self.thread = FetchThread(0,True,self.wordlist_queue)
         t._event.connect(self.onEvent)
         t._add_word_event.connect(self.on_add_word)        
-        t._msg.connect(self.show_message)
         self.thread.start()
-        #while not self.thread.isFinished():
-        #    self.thread.wait(100)
-        #    tooltip(
-        #        _('Fetching is working, wait...'),
-        #        parent=mw,
-        #    )
-
 
     def onEvent(self, evt, *args):
         n = 1
         if evt == 'spawn_other_threads':
             self.word_to_fetch = args[0]
-            for n in range(1,10):
-                t = FetchThread(5)
+            for n in range(1,5):
+                t = FetchThread(max_words = 5, fetch_wordlist = False,wordlist_queue=self.wordlist_queue)
                 t._event.connect(self.onEvent)
                 t._add_word_event.connect(self.on_add_word)        
-                t._msg.connect(self.show_message)
                 setattr(self, 'thread'+str(n), t)
                 thread_to_start = getattr(self, 'thread'+str(n))
                 thread_to_start.start()
                 n += 1
-        if evt == 'thread_finished': 
-            if mw.wordlist_queue.empty():
+        if evt == 'batch_completed': 
+            if self.wordlist_queue.empty() or self.need_to_stop:
                 return
-            for n in range(1,10):
+            for n in range(1,5):
                 thread_to_restart = getattr(self, 'thread'+str(n), None)
                 if thread_to_restart != None and thread_to_restart.isFinished():
                     thread_to_restart.start(5)
+        if evt == 'need_to_stop': 
+            self.need_to_stop = True
+            tooltip(
+                _(str('Stopping all error')),
+                parent=mw,
+            )
+        if evt == 'error': 
+            self.need_to_stop = True
+            showText(_("Fetching failed:\n%s") % self._rewriteError(args[0]))
 
-    def show_message(self, msg):
-        tooltip(
-                _(str(msg)),
+        if evt == 'message': 
+            tooltip(
+                _(str(args[0])),
                 parent=mw,
             )
 
-    def on_add_word(self, word_entry, wordlist_entry):
+
+    def on_add_word(self, word_entry):
         add_word_to_collection(word_entry,self.collection)
-        mw.cddownloader.delete_word_from_wordlist(wordlist_entry)
         self.fetched += 1
         tooltip(
                 _(str(self.fetched) +' / '+str(self.word_to_fetch)),
                 parent=mw,
             )
 
+    def _rewriteError(self, err):
+        if "Errno 61" in err:
+            return _(
+                """\
+Couldn't connect to AnkiWeb. Please check your network connection \
+and try again."""
+            )
+        elif "timed out" in err or "10060" in err:
+            return _(
+                """\
+The connection to AnkiWeb timed out. Please check your network \
+connection and try again."""
+            )
+        elif "403" in err:
+            return _(
+                """\
+Authentification failed. Either your cookie expired or your are trying to delete entries from a community wordlist."""
+            )
+        elif "code: 500" in err:
+            return _(
+                """\
+AnkiWeb encountered an error. Please try again in a few minutes, and if \
+the problem persists, please file a bug report."""
+            )
+        elif "code: 501" in err:
+            return _(
+                """\
+Please upgrade to the latest version of Anki."""
+            )
+        # 502 is technically due to the server restarting, but we reuse the
+        # error message
+        elif "code: 502" in err:
+            return _("Cambridge Dictionary is under maintenance. Please try again in a few minutes.")
+        elif "code: 503" in err:
+            return _(
+                """\
+Cambridge Dictionary is too busy at the moment. Please try again in a few minutes."""
+            )
+        elif "code: 504" in err:
+            return _(
+                "504 gateway timeout error received. Please try temporarily disabling your antivirus."
+            )
+        elif "10061" in err or "10013" in err or "10053" in err:
+            return _(
+                "Antivirus or firewall software is preventing Anki from connecting to the internet."
+            )
+        elif "10054" in err or "Broken pipe" in err:
+            return _(
+                "Connection timed out. Either your internet connection is experiencing problems, or you have a very large file in your media folder."
+            )
+        elif "Unable to find the server" in err or "socket.gaierror" in err:
+            return _(
+                "Server not found. Either your connection is down, or antivirus/firewall "
+                "software is blocking Anki from connecting to the internet."
+            )
+        elif "code: 407" in err:
+            return _("Proxy authentication required.")
+        elif "code: 413" in err:
+            return _("Your collection or a media file is too large to sync.")
+        elif "EOF occurred in violation of protocol" in err:
+            return (
+                _(
+                    "Error establishing a secure connection. This is usually caused by antivirus, firewall or VPN software, or problems with your ISP."
+                )
+                + " (eof)"
+            )
+        elif "certificate verify failed" in err:
+            return (
+                _(
+                    "Error establishing a secure connection. This is usually caused by antivirus, firewall or VPN software, or problems with your ISP."
+                )
+                + " (invalid cert)"
+            )
+        return err
+
 class FetchThread(QThread):
 
     _event = pyqtSignal(str, str)
-    _msg = pyqtSignal(str)
-    _add_word_event = pyqtSignal(word_entry, wordlist_entry)
+    _add_word_event = pyqtSignal(word_entry)
 
-    def __init__(self, max_words = 5, fetch_wordlist = False):
+    def __init__(self, max_words = 5, fetch_wordlist = False,wordlist_queue=None):
         QThread.__init__(self)
         self.config = get_config()
         self.downloader = CDDownloader()
         self.max_words = max_words
         self.fetch_wordlist = fetch_wordlist
+        self.wordlist_queue = wordlist_queue
 
     def run(self):
-        if self.fetch_wordlist:
-            self.sendMessage('Starting fetching wordlists')
-            self.downloader = CDDownloader()
-            self.downloader.clean_up()
-            for wordlist_id in self.config['wordlist_ids']:
-                self.downloader.fetch_wordlist_entries(wordlist_id)
-        
-            for wl_entry in self.downloader.wordlist:
-                mw.wordlist_queue.put(wl_entry)
-            self.fireEvent('spawn_other_threads',str(mw.wordlist_queue.qsize()))
+        if self.wordlist_queue == None:
+            return
+        try:
+            if self.fetch_wordlist:
+                self._fetch_wordlist()
+                self.fireEvent('spawn_other_threads',str(self.wordlist_queue.qsize()))
+                return
+        except :
+            err = traceback.format_exc()
+            self.fireEvent("error", err)
+            return
 
-        #self.sendMessage('Starting fetching ' + str(mw.wordlist_queue.qsize())+' entries')
+        try:
+            self._fetch_wrods()
+            self.fireEvent('batch_completed')
+        except :
+            err = traceback.format_exc()
+            self.fireEvent("error", err)
+            return       
+        
+
+    def fireEvent(self, evt, args=''):
+        #
+        self._event.emit(evt, args)
+
+    def addWordEvent(self,wd_entry):
+
+        self._add_word_event.emit(wd_entry)
+
+    def _fetch_wordlist(self):
+        self.fireEvent('message','Starting fetching wordlists')
+        self.downloader = CDDownloader()
+        self.downloader.clean_up()
+        for wordlist_id in self.config['wordlist_ids']:
+            self.downloader.fetch_wordlist_entries(wordlist_id)
+        
+        for wl_entry in self.downloader.wordlist:
+            self.wordlist_queue.put(wl_entry)
+
+    def _fetch_wrods(self):
         n = 0
-        while n < self.max_words and  not mw.wordlist_queue.empty():
-            wl_entry = mw.wordlist_queue.get()
+        while n < self.max_words and  not self.wordlist_queue.empty():
+            wl_entry = self.wordlist_queue.get()
             self.downloader.clean_up()
             self.downloader.wordlist_entry = wl_entry 
             self.downloader.user_url = wl_entry.word_url
             self.downloader.word_id  = wl_entry.word_id
-            self.downloader.get_word_defs(wl_entry.definition)
+            self.downloader.get_word_defs()
             if self.downloader.word_data:
-                wd_entry = self.downloader.find_word_by_definition(wl_entry.definition)
+                wd_entry = self.downloader.find_word_by_wl_entry(wl_entry)
                 if wd_entry != None:
-                    self.addWordEvent(wd_entry, wl_entry)
+                    self.addWordEvent(wd_entry)
+                    self.downloader.delete_word_from_wordlist(wl_entry)
             n += 1
 
+                
 
-        self.fireEvent('thread_finished')
-
-    def fireEvent(self, evt, args=''):
-        self._event.emit(evt, args)
-
-    def sendMessage(self, msg):
-        self._msg.emit(msg)
-
-    def addWordEvent(self,wd_entry, wl_entry):
-        self._add_word_event.emit(wd_entry, wl_entry)
 

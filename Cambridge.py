@@ -1,14 +1,12 @@
 # system libs
 import re
-import urllib.error
-import urllib.parse
-import urllib.request
+from urllib.error import *
+from urllib.parse import quote, urljoin
+from urllib.request import Request, urlopen
 from abc import ABC
 from copy import copy
 from bs4 import BeautifulSoup
 from PyQt5.QtCore import QObject
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options  
 from http.cookies import SimpleCookie
 import os
 import sys
@@ -53,8 +51,14 @@ class CDDownloader(QObject):
         #Definitions
         self.cambridge_plus_url = 'https://dictionary.cambridge.org/plus/'
         self.cambridge_plus_api_url = 'https://dictionary.cambridge.org/plus/api/'
+        self.config = get_config()
+        #self.config = {'cookie':'_ga=GA1.3.524435349.1588174459; _fbp=fb.1.1588174461106.1230392959; amp-access=amp-Qrmz-u2Xb_Y3cMl2Q3bfng; gig_canary=false; gig_bootstrap_3_1Rly-IzDTFvKO75hiQQbkpInsqcVx6RBnqVUozkm1OVH_QRzS-xI3Cwj7qq7hWv5=_gigya_ver3; _gig_llp=googleplus; _gig_llu=Alexey; username=Alexey+Morar; logged=logged; beta-redesign=active; preferredDictionaries=\"english,learner-english,english-russian,british-grammar,english-polish\"; amp-access=amp-Qrmz-u2Xb_Y3cMl2Q3bfng; dismissedNotifications=cookiewarning; _gid=GA1.3.947557079.1588827051; gig_canary_ver=10936-5-26482170; glt_3_1Rly-IzDTFvKO75hiQQbkpInsqcVx6RBnqVUozkm1OVH_QRzS-xI3Cwj7qq7hWv5=st2.s.AcbHWLZABA.aIyMZyuM8yWzskFFCK5mHL-ahnlgnCwuQ2Ax4jOR6hRU0nacN8NdTlIEqlTTGkM-JKSR8W6wXXDDpqqqOGib1bJHBpLt99JnyWXjQkHlm5o.2YKSHSQNh6RquwTq5WbpFyzZUcQYBBxOpk-juoqc17IZXKaIWi6CIesjejwrj_95aox9m8JVDWAL9xzawUxl0g.sc3%7CUUID%3D08796647443945aa83ff72063b318baa; glt_3_1Rly-IzDTFvKO75hiQQbkpInsqcVx6RBnqVUozkm1OVH_QRzS-xI3Cwj7qq7hWv5=st2.s.AcbHWLZABA.aIyMZyuM8yWzskFFCK5mHL-ahnlgnCwuQ2Ax4jOR6hRU0nacN8NdTlIEqlTTGkM-JKSR8W6wXXDDpqqqOGib1bJHBpLt99JnyWXjQkHlm5o.2YKSHSQNh6RquwTq5WbpFyzZUcQYBBxOpk-juoqc17IZXKaIWi6CIesjejwrj_95aox9m8JVDWAL9xzawUxl0g.sc3%7CUUID%3D08796647443945aa83ff72063b318baa; remember-me=Z29vZ2xlcGx1cy0xMDk3MjYwMzY5NDU2MjAxNTU3MzE6MTU5MDE0MDI5MzQ0MzpmOGMwN2NjYzMwZTRjMDVjNWY2MTdjYWIzMWRkM2E5MA; XSRF-TOKEN=dd75d879-3882-4a2a-896f-e3258112bc6e; JSESSIONID=B845268334AA43BF9529CFC267DBD4B9-n1; _gat=1'}
+        if self.config is None:
+            raise Exception("Config file error")
+        if self.config['cookie'] is None:
+            raise Exception("Config doesn't have cookie")
 
-    def get_word_defs(self,only_this_meaning=None):
+    def get_word_defs(self):
 
         if not self.language.lower().startswith('en'):
             return
@@ -69,36 +73,29 @@ class CDDownloader(QObject):
         # self.ws = word_soup
         
         if self.user_url:
-            req = urllib.request.Request(self.user_url)
+            req = Request(self.user_url)
         else:
-            req = urllib.request.Request(self.url + urllib.parse.quote(word.encode('utf-8')))
+            req = Request(self.url + quote(word.encode('utf-8')))
         #req.add_header("User-Agent",self.user_agent) 
         #req.add_header('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3')
         req.add_header('Accept-Language', 'en-US')
         #req.add_header('Accept-Encoding', 'gzip, deflate, br')
 
         try:
-            response = urllib.request.urlopen(req)
-        except urllib.error.HTTPError as e:
+            response = urlopen(req)
+        except HTTPError as e:
                 QMessageBox.warning(mw,'URL error',e.reason.strip())
                 return
-        except urllib.error.URLError as e:
+        except URLError as e:
                 QMessageBox.warning(mw,'URL error',e.reason.strip())
                 return
-        #if response.info().get('Content-Encoding') == 'gzip':
-        #    response_zip = response.read()
-        #    buf = BytesIO(response_zip)
-        #    f = gzip.GzipFile(fileobj=buf)
-        #    data = f.read()
-        #    html_doc = data.decode()
-        #else:
         html_doc = response.read()
 
         word_soup = BeautifulSoup(html_doc, "html.parser")
 
         stop_further_parsing = False
 
-        for tag_cald4 in word_soup.find_all(name='div', attrs={'class': 'pr dictionary','data-id':['cald4','cbed','cacd']}):
+        for tag_cald4 in word_soup.find_all(name='div', attrs={'class': 'pr dictionary','data-id':['cald4','cbed','cacd','cald4-us']}):
             for tag_entry in tag_cald4.find_all(name='div', attrs={'class': ['pr entry-body__el','pr idiom-block','entry-body__el clrd js-share-holder']}):
                 word_to_add = word_entry()
                 tag_dict = tag_cald4.find(name='div',attrs={'class':'cid'})
@@ -112,16 +109,16 @@ class CDDownloader(QObject):
                 # Word title
                 cur_tag = tag_entry.find(name='div', attrs={'class': 'di-title'})
                 if cur_tag:
-                    l1_word["word_title"] = prettify_string(cur_tag.text)
-                    word_to_add.word_title = prettify_string(cur_tag.text)
+                    l1_word["word_title"] = self._prettify_string(cur_tag.text)
+                    word_to_add.word_title = self._prettify_string(cur_tag.text)
                 else:
                     return
-                    #l1_word["word_title"] = prettify_string(cur_tag.text)
+                    #l1_word["word_title"] = self._prettify_string(self,cur_tag.text)
                 # Word's grammatical part
                 cur_tag = tag_entry.find(name='div', attrs={'class': 'posgram dpos-g hdib lmr-5'})
                 if cur_tag:
-                    l1_word["word_gram"] = prettify_string(cur_tag.text)
-                    word_to_add.word_part_of_speech = prettify_string(cur_tag.text)
+                    l1_word["word_gram"] = self._prettify_string(cur_tag.text)
+                    word_to_add.word_part_of_speech = self._prettify_string(cur_tag.text)
                 else:
                     l1_word["word_gram"] = ''
                 # UK IPA
@@ -131,7 +128,7 @@ class CDDownloader(QObject):
                 if cur_tag:
                     ipa = cur_tag.find(name='span',attrs={'class':'ipa dipa lpr-2 lpl-1'})
                     if ipa:
-                        ipa_text = prettify_string(ipa.text)
+                        ipa_text = self._prettify_string(ipa.text)
                     else:
                         ipa_text = ''
                     l1_word["word_pro_uk"] = 'UK ' + ipa_text
@@ -156,7 +153,7 @@ class CDDownloader(QObject):
                 if cur_tag:
                     ipa = cur_tag.find(name='span',attrs={'class':'ipa dipa lpr-2 lpl-1'})
                     if ipa:
-                        ipa_text = prettify_string(ipa.text)
+                        ipa_text = self._prettify_string(ipa.text)
                     else:
                         ipa_text = ''
                     l1_word["word_pro_us"] = 'US ' + ipa_text
@@ -197,7 +194,7 @@ class CDDownloader(QObject):
                         tag_l2_word_key = html_pos_body.find(attrs={'class': 'dsense_h'})
                         if not tag_l2_word_key:
                             continue
-                        general_m = prettify_string(tag_l2_word_key.get_text())
+                        general_m = self._prettify_string(tag_l2_word_key.get_text())
                         word_to_add.word_general = general_m 
                         l2_word[general_m] = None
                         l2_meaning_key = {}
@@ -207,16 +204,19 @@ class CDDownloader(QObject):
                             tag_l2_meaning = html_meaning.find("div", attrs={'class':'ddef_h'})
                             if not tag_l2_meaning:
                                 continue
+                            word_to_add.senseId = html_meaning.attrs['data-wl-senseid']
                             tag_l2_specific_gram = tag_l2_meaning.find("span", attrs={'class':'gram dgram'})
-                            word_to_add.word_specific_gram = prettify_string(tag_l2_specific_gram.text if tag_l2_specific_gram else '')
+                            word_to_add.word_specific_gram = self._prettify_string(tag_l2_specific_gram.text if tag_l2_specific_gram else '')
+                            tag_usage = tag_l2_meaning.find("span", attrs={'class':'usage dusage'})
+                            if tag_usage:
+                                word_to_add.usage = self._prettify_string(tag_usage.text)
                             tag_l2_specific = tag_l2_meaning.find("div", attrs={'class':'def ddef_d db'})
-                            word_to_add.word_specific = prettify_string(tag_l2_specific.text if tag_l2_specific else '')
-
-                            specific_m = prettify_string(tag_l2_meaning.text)
+                            word_to_add.word_specific = self._prettify_string(tag_l2_specific.text if tag_l2_specific else '')
+                            specific_m = self._prettify_string(tag_l2_meaning.text)
                             l2_meaning[specific_m] = None
                             examples = []
                             for tag_examples in html_meaning.find_all(name='div', attrs={'class': 'examp dexamp'}):
-                                    examples.append(prettify_string(tag_examples.text))
+                                    examples.append(self._prettify_string(tag_examples.text))
                             l2_meaning[specific_m] = examples
                             word_to_add.word_examples = examples
                             self.word_data.append(word_to_add)
@@ -234,17 +234,19 @@ class CDDownloader(QObject):
                             tag_l2_meaning = html_meaning.find("div", attrs={'class':'ddef_h'})
                             if not tag_l2_meaning:
                                 continue
-                            specific_m = prettify_string(tag_l2_meaning.text)
-
+                            specific_m = self._prettify_string(tag_l2_meaning.text)
+                            word_to_add.senseId = html_meaning.attrs['data-wl-senseid']
                             tag_l2_specific_gram = tag_l2_meaning.find("span", attrs={'class':'gram dgram'})
-                            word_to_add.word_specific_gram = prettify_string(tag_l2_specific_gram.text if tag_l2_specific_gram else '')
+                            word_to_add.word_specific_gram = self._prettify_string(tag_l2_specific_gram.text if tag_l2_specific_gram else '')
+                            tag_usage = tag_l2_meaning.find("span", attrs={'class':'usage dusage'})
+                            if tag_usage:
+                                word_to_add.usage = self._prettify_string(tag_usage.text)
                             tag_l2_specific = tag_l2_meaning.find("div", attrs={'class':'def ddef_d db'})
-                            word_to_add.word_specific = prettify_string(tag_l2_specific.text if tag_l2_specific else '')
-
+                            word_to_add.word_specific = self._prettify_string(tag_l2_specific.text if tag_l2_specific else '')
                             l2_meaning[specific_m] = None
                             examples = []
                             for tag_examples in html_meaning.find_all(name='div', attrs={'class': 'examp dexamp'}):
-                                    examples.append(prettify_string(tag_examples.text))
+                                    examples.append(self._prettify_string(tag_examples.text))
                             l2_meaning[specific_m] = examples
                             word_to_add.word_examples = examples
                             self.word_data.append(word_to_add)
@@ -259,33 +261,6 @@ class CDDownloader(QObject):
                 self.word = self.user_url.split('/')[-1]
 
         self.word_data.sort(key=lambda x:x.word_dictionary_id)
-        #if only_this_meaning != None:
-        #    only_l2_word = [] 
-        #    found = False
-        #    for l1_word in self.word_data:
-        #        if found: break
-        #        for l2_word_key in l1_word['meanings']:
-        #            if found: break
-        #            for meaning_key in l1_word['meanings'][l2_word_key]:
-        #                #QMessageBox.information(mw,'Auth',meaning_key)
-        #                #QMessageBox.information(mw,'Auth',only_this_meaning)
-        #                if meaning_key == only_this_meaning:
-        #                    only_l2_word = {meaning_key:l1_word['meanings'][l2_word_key][meaning_key]}
-        #                    only_meaning = {l2_word_key:only_l2_word}
-        #                    only_l1_word = {}
-        #                    only_l1_word['meanings'] = only_meaning
-        #                    only_l1_word['word_title']  = l1_word['word_title']
-        #                    only_l1_word['word_gram']  = l1_word['word_gram']
-        #                    only_l1_word['word_pro_uk']  = l1_word['word_pro_uk']
-        #                    only_l1_word['word_pro_us']  = l1_word['word_pro_us']
-        #                    only_l1_word['word_uk_media']  = l1_word['word_uk_media']
-        #                    only_l1_word['word_us_media']  = l1_word['word_us_media']
-        #                    only_l1_word['word_image']  = l1_word['word_image']
-        #                    only_word_data = []
-        #                    only_word_data.append(only_l1_word)
-        #                    self.word_data = only_word_data
-        #                    found = True
-        #                    break
 
     def get_tempfile_from_url(self, url_in):
         """
@@ -314,12 +289,13 @@ class CDDownloader(QObject):
         the requests, checks that we got error code 200 and returns
         the raw data only when everything is OK.
         """
-        request = urllib.request.Request(url_in)
+        request = Request(url_in)
         request.add_header('User-agent', self.user_agent)
         try:
-            response = urllib.request.urlopen(request)
-        except urllib.error.URLError as e:
+            response = urlopen(request)
+        except URLError as e:
             QMessageBox.warning(mw,'URL error',e.reason.strip())
+            return ''
         
         if 200 != response.code:
             raise ValueError(str(response.code) + ': ' + response.msg)
@@ -340,8 +316,6 @@ class CDDownloader(QObject):
         self.wordlist.clear()
         self.word_id = ''
         self.wordlist_entry = None
-        #while self.words_queue.not_empty:
-        #    self.words_queue.get()
 
     def get_file_entry(self,file,base_name):
         file_entry = {}
@@ -350,107 +324,37 @@ class CDDownloader(QObject):
         file_entry['file_path'] = os.path.abspath(file)
         return file_entry
 
-    def get_all_words_in_list(self, wordlist_link):
-        
-        config = get_config()
-        if config is None:
-            return None
-        if config['cookie'] is None:
-            return None
-        
-        self.wordlist.clear()
-
-        req = urllib.request.Request(wordlist_link)
-
-        #req.add_header("User-Agent",USER_AGENT)
-        req.add_header('Accept-Language', 'en-US')
-        req.add_header('Cookie', config['cookie'])
-
-        try:
-            chrome_options = Options()  
-            chrome_options.add_argument("--headless") 
-            driver = webdriver.Chrome(join(join(dirname(__file__),'lib'),'chromedriver') , chrome_options=chrome_options)            
-            driver.get(self.base_url)
-            cookies = SimpleCookie()
-            cookies.load(config['cookie'])
-            for k,v in cookies.items():
-                driver.add_cookie({'name' : k, 'value' : v._value})
-            driver.get(wordlist_link)
-            html_doc = driver.page_source
-            # response = urllib.request.urlopen(req)
-        except urllib.error.HTTPError as e:
-            QMessageBox.warning(mw,'HTTP error',e.reason.strip())
-            return 
-        
-        #html_doc = response.read()
-        
-        word_soup = BeautifulSoup(html_doc, "html.parser")
-        tag_wordlist_id = word_soup.find(name = 'button', attrs={'class':'bt hfr fs14 lp0 lb0 lmt-5 js-plus-wordlist-deleteall'})
-        if tag_wordlist_id:
-            self.wordlist_id = tag_wordlist_id['data-wordlist-id']
-        else:
-            return
-
-        tag_all_wl = word_soup.find_all(name = 'li', attrs={'class':'wordlistentry-row'})
-        for tag_wl_entry in tag_all_wl:
-            word_html_text = tag_wl_entry.find(attrs={'class':'phrase haxa lmr-10'}).get_text()
-            word = word_html_text # prettify_string(tag_wl_entry)
-            ref = tag_wl_entry.find(name = 'a', attrs={'class':'tb'})['href']
-            word_l2_meaning = prettify_string(tag_wl_entry.find(name = 'div', attrs={'class':'def fs16 fs18-s fs19-m lmb-10'}).get_text())
-            dataWordID = tag_wl_entry['data-word-id']
-            wl_entry = wordlist_entry(word,ref,word_l2_meaning,dataWordID)
-            self.wordlist.append(wl_entry)
-        driver.quit()
-    
     def fetch_wordlist_entries(self, wordlist_id):
 
-        config = get_config()
-        if config is None:
-            return None
-        if config['cookie'] is None:
-            return None
-        
-
-        for n in range(100):
+        for n in range(1,100):
             
             # https://dictionary.cambridge.org/plus/wordlist/21215803/entries/100/
         
-            url_for_request = urllib.parse.urljoin(self.base_url,'plus/wordlist/')
-            url_for_request = urllib.parse.urljoin(url_for_request,str(wordlist_id)+'/entries/')
-            url_for_request = urllib.parse.urljoin(url_for_request,str(n)+'/')        
+            url_for_request = urljoin(self.base_url,'plus/wordlist/')
+            url_for_request = urljoin(url_for_request,str(wordlist_id)+'/entries/')
+            url_for_request = urljoin(url_for_request,str(n)+'/')        
 
-            req = urllib.request.Request(url_for_request)
+            req = Request(url_for_request)
             req.add_header('Accept-Language', 'en-US')
             req.add_header('Accept', 'application/json')            
-            req.add_header('Cookie', config['cookie'])            
+            req.add_header('Cookie', self.config['cookie'])            
 
-            try:
-                response = urllib.request.urlopen(req)
-            except urllib.request.HTTPError as e:
-                    QMessageBox.warning(mw,'URL error',e.reason.strip())
-                    break
-                    return
-            except urllib.request.URLError as e:
-                    QMessageBox.warning(mw,'URL error',e.reason.strip())
-                    break
-                    return
-            try:
-                word_list_json = json.loads(response.read())
-                if not word_list_json:
-                    break
-            except e:
-                QMessageBox.warning(mw,'Request response error',str(e))
-                return
+            response = urlopen(req)
+            word_list_json = json.loads(response.read())
+            if not word_list_json:
+               break
             
             for word_in_response in word_list_json:
                 wl_entry = wordlist_entry()
                 wl_entry.wordlist_id = word_in_response['wordlistId']
                 wl_entry.word_id = word_in_response['id']
+                wl_entry.senseId = word_in_response['senseId']
                 wl_entry.word_url = word_in_response['entryUrl']
                 wl_entry.definition = word_in_response['definition']
                 wl_entry.soundUKMp3 = word_in_response['soundUKMp3']
                 wl_entry.soundUSMp3 = word_in_response['soundUSMp3']
                 wl_entry.dictCode = word_in_response['dictCode']
+                wl_entry.headword = word_in_response['headword']
                 self.wordlist.append(wl_entry)
                 #{
                 #"id": 26061590,
@@ -472,30 +376,20 @@ class CDDownloader(QObject):
                 #},
       
     def delete_word_from_wordlist(self, wl_entry):
-        config = get_config()
-        if config is None:
-            return None
-        if config['cookie'] is None:
-            return None
 
-        req = urllib.request.Request(self.cambridge_plus_api_url+'deleteWordlistEntry')
+        req = Request(self.cambridge_plus_api_url+'deleteWordlistEntry')
         req.add_header('Content-Type','application/json')
 
         req.add_header('Accept-Language', 'en-US')
-        req.add_header('Cookie', config['cookie'])
+        req.add_header('Cookie', self.config['cookie'])
         data = json.dumps({'id': wl_entry.word_id, 'wordlistId': wl_entry.wordlist_id})
         data = data.encode('ascii')
-        try:
-            r = urllib.request.urlopen(req, data)
-        except urllib.error.HTTPError as e:
-            QMessageBox.warning(mw,'URL error',e.reason.strip())
-        except urllib.error.URLError as e:
-            QMessageBox.warning(mw,'URL error',e.reason.strip())
+        r = urlopen(req, data)
 
     def get_dict_name(self,dict_id):
 
         dicts = {
-            'dataset_cald4':'Cambridge Cambridge Advanced Learner''s Dictionary & Thesaurus',
+            'dataset_cald4':'Cambridge Advanced Learner''s Dictionary & Thesaurus',
             'dataset_cbed':'Cambridge Business English Dictionary',
             'dataset_cacd':'Cambridge American English Dictionary'}
         if dict_id in dicts:
@@ -509,6 +403,25 @@ class CDDownloader(QObject):
                 return self.word_data.pop()
         return None
 
+    def find_word_by_wl_entry(self, wl_entry):
+        wd_entries = list(filter(lambda wd_entry: wd_entry.senseId == wl_entry.senseId, self.word_data))
+        if len(wd_entries) == 1:
+            return wd_entries[0]
+        #for wd_entry in self.word_data:
+        #    if wd_entry.word_specific == definition:
+        #        return self.word_data.pop()
+        #return None
+
+    def _prettify_string(self, in_str):
+        if not in_str:
+            return ''
+        in_str = re.sub(r' +',' ',in_str).strip()
+        in_str = re.sub(r'\n','',in_str).strip()
+        in_str = re.sub(r':$','',in_str).strip()    
+        return in_str.strip()
+
+
+
 class wordlist_entry():
     """
     This class represent a single entry from Cambridge Wordlist.
@@ -516,6 +429,7 @@ class wordlist_entry():
 
     def __init__(self,word = None, ref = None, l2_meaning = None, dataWordID = None, wordlist_id = None):
         self.wordlist_id = wordlist_id
+        self.senseId = ''
         self.word = word
         self.word_url = ref
         self.word_l2_meaning = l2_meaning
@@ -541,9 +455,12 @@ class word_entry():
         self.word_specific = ''
         self.word_specific_gram = ''
         self.word_examples = []
+        self.usage = ''
+        self.senseId = ''
 
 
-#def prettify_string(in_str):
+
+#def self._prettify_string(self,in_str):
 #    if not in_str:
 #        return ''
 #    in_str = re.sub(r' +',' ',in_str).strip()
@@ -553,9 +470,8 @@ class word_entry():
 
 # This code for debugging purposes
 #ad = CDDownloader()
-##ad.word = 'ad-hominem'
 #ad.language = 'en'
-#ad.user_url = 'https://dictionary.cambridge.org/dictionary/english/slump'
+#ad.user_url = 'https://dictionary.cambridge.org/dictionary/english/chickenshit'
 #ad.get_word_defs()
 #ad = None
 

@@ -72,13 +72,6 @@ mw.create_notes_from_link_action.setShortcut(CREATE_NEW_NOTES_SHORTCUT)
 
 mw.create_notes_from_link_action.triggered.connect(ask_user_for_link)
 mw.edit_cambridge_submenu.addAction(mw.create_notes_from_link_action)
-## Word list
-#mw.create_notes_from_wordlist_link_action = QAction(mw)
-#mw.create_notes_from_wordlist_link_action.setText("Parse user wordlist from link")
-#mw.create_notes_from_wordlist_link_action.setToolTip("Parse whole word list from provided link.")
-
-#mw.create_notes_from_wordlist_link_action.triggered.connect(ask_user_for_wordlist_link)
-#mw.edit_cambridge_submenu.addAction(mw.create_notes_from_wordlist_link_action)
 
 # Word list - saved
 mw.parse_saved_wl_action = QAction(mw)
@@ -97,9 +90,3 @@ mw.open_main_windows_action.triggered.connect(open_main_windows_addon)
 mw.edit_cambridge_submenu.addAction(mw.open_main_windows_action)
 
 mw.cddownloader = CDDownloader()
-
-#mw.test_create_utils = QAction(mw)
-#mw.test_create_utils.setText("Test: create note (utils)")
-##mw.test_create_utils.setToolTip("Fetch word definitions from provided link.")
-#mw.test_create_utils.triggered.connect(create_selected_notes)
-#mw.edit_cambridge_submenu.addAction(mw.test_create_utils)
