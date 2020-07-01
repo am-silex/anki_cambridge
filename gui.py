@@ -15,7 +15,8 @@ import traceback
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import * 
 from PyQt5 import QtCore 
-from PyQt5.QtCore import (QThread, QObject, pyqtSignal)
+from PyQt5.QtCore import (QThread, QObject, pyqtSignal, QUrl)
+from PyQt5.QtWebEngineWidgets import QWebEngineView 
 
 from aqt import mw
 from aqt.utils import askUserDialog, showInfo, showText, showWarning, tooltip
@@ -151,8 +152,8 @@ class WordDefDialogue(QDialog):
         dialog_buttons.addButton(QDialogButtonBox.SaveAll)
         dialog_buttons.addButton(QDialogButtonBox.Cancel)
         dialog_buttons.addButton(QDialogButtonBox.Ok)
-        dialog_buttons.button(QDialogButtonBox.Cancel).clicked.connect(self.create_selected_notes)
-        dialog_buttons.button(QDialogButtonBox.Ok).clicked.connect(self.reject)
+        dialog_buttons.button(QDialogButtonBox.Ok).clicked.connect(self.create_selected_notes)
+        dialog_buttons.button(QDialogButtonBox.Cancel).clicked.connect(self.reject)
         dialog_buttons.button(QDialogButtonBox.SaveAll).clicked.connect(self.save_all)
         layout.addWidget(dialog_buttons)
 
@@ -238,7 +239,6 @@ class WordDefDialogue(QDialog):
             add_word(wd_entry, self.model)
         self.done(0)
 
-
 class AddonConfigWindow(QDialog):
     """
     A Dialog to let the user to choose defs to be added.
@@ -264,7 +264,7 @@ class AddonConfigWindow(QDialog):
         auth_label_status.setText('Unknown')
         auth_layout.addWidget(auth_label_status)
         auth_btn = QPushButton()
-        auth_btn.setText('Authorize via Google')
+        auth_btn.setText('Sign in')
         auth_btn.clicked.connect(self.btn_auth_clicked)
         auth_layout.addWidget(auth_btn)
         layout.addLayout(auth_layout)        
@@ -341,7 +341,9 @@ class AddonConfigWindow(QDialog):
         
 
     def btn_auth_clicked(self):
-        QMessageBox.information(self,'Auth','Auth')
+        auth_window = WebPageView(AUTH_URL)
+        auth_window.exec_()
+        
 
     def btn_Ok(self):
         # Fill config dict with current settings and write them to file
@@ -584,6 +586,31 @@ class FetchThread(QThread):
                     self.downloader.delete_word_from_wordlist(wl_entry)
             n += 1
 
-                
+class WebPageView(QDialog):
+    def __init__(self, user_url=''):
+        self.user_url = user_url
+        QDialog.__init__(self)
+        self.initUI()
 
+    def initUI(self):
+        layout = QVBoxLayout()
+        self.setLayout(layout)
+        self.webpage = MyQWebEngineView()
+        
+        layout.addWidget(self.webpage)
+        self.webpage.load(QUrl(self.user_url))
+        self.webpage.show()
+
+class MyQWebEngineView(QWebEngineView):
+    def __init__(self):
+        QWebEngineView.__init__(self)
+        self.urlChanged.connect(self.url_changed)
+
+    def createWindow(self, type=None):
+        QMessageBox.warning(mw,'Link is not provided',str(type))
+        wpv = WebPageView()
+        wpv.exec_()
+
+    def url_changed(self):
+        QMessageBox.warning(mw,'Link is not provided','URL changed')
 

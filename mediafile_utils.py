@@ -55,7 +55,6 @@ def free_media_name(base, end):
     # trying the 10000 names.
     raise ValueError('Could not find free name.')
 
-
 def exists_lc(path, name):
     u"""Test if file name clashes with name of extant file.
 
@@ -76,7 +75,6 @@ def exists_lc(path, name):
     # After the loop, none found.
     return False
 
-
 def unmunge_to_mediafile(dl_entry):
     u"""
     Move the data to the media folder.
@@ -87,7 +85,7 @@ def unmunge_to_mediafile(dl_entry):
     try:
         media_path, media_file_name = free_media_name(
             dl_entry.base_name, dl_entry.file_extension)
-        shutil.move(dl_entry.file_path, media_path)
+        shutil.copy(dl_entry.file_path, media_path)
     except :
         media_path =''
         media_file_name =''
@@ -95,7 +93,7 @@ def unmunge_to_mediafile(dl_entry):
     
     return media_file_name
 
-
 def get_file_entry(file,base_name):
     f_entry = dl_entry(file,base_name)
     return f_entry
+

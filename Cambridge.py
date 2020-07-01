@@ -75,8 +75,9 @@ class CDDownloader(QObject):
             req = Request(self.user_url)
         else:
             req = Request(self.url + quote(word.encode('utf-8')))
-        #req.add_header("User-Agent",self.user_agent) 
-        #req.add_header('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3')
+        #req.add_header("User-Agent",self.user_agent)
+        #req.add_header('Accept',
+        #'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3')
         req.add_header('Accept-Language', 'en-US')
         #req.add_header('Accept-Encoding', 'gzip, deflate, br')
 
@@ -101,22 +102,21 @@ class CDDownloader(QObject):
                 word_to_add.word_dictionary_id = tag_dict['id']
                 word_to_add.word_dictionary = self.get_dict_name(word_to_add.word_dictionary_id)
                 #Different types of entries
-                #pr entry-body__el                      - ordinary entry
-                #pr idiom-block                         - idiomatic expressions
-                #entry-body__el clrd js-share-holder     phrasal verbs
+                #pr entry-body__el - ordinary entry
+                #pr idiom-block - idiomatic expressions
+                #entry-body__el clrd js-share-holder phrasal verbs
                 l1_word = {}
                 # Word title
                 cur_tag = tag_entry.find(name='div', attrs={'class': 'di-title'})
                 if cur_tag:
-                    l1_word["word_title"] = self._prettify_string(cur_tag.text)
                     word_to_add.word_title = self._prettify_string(cur_tag.text)
                 else:
                     return
-                    #l1_word["word_title"] = self._prettify_string(self,cur_tag.text)
+                    #l1_word["word_title"] =
+                    #self._prettify_string(self,cur_tag.text)
                 # Word's grammatical part
                 cur_tag = tag_entry.find(name='div', attrs={'class': 'posgram dpos-g hdib lmr-5'})
                 if cur_tag:
-                    l1_word["word_gram"] = self._prettify_string(cur_tag.text)
                     word_to_add.word_part_of_speech = self._prettify_string(cur_tag.text)
                 else:
                     l1_word["word_gram"] = ''
@@ -130,21 +130,14 @@ class CDDownloader(QObject):
                         ipa_text = self._prettify_string(ipa.text)
                     else:
                         ipa_text = ''
-                    l1_word["word_pro_uk"] = 'UK ' + ipa_text
                     word_to_add.word_pro_uk = 'UK ' + ipa_text
                     media_file_tag = cur_tag.find("source", attrs={'type':'audio/mpeg'})
                     if media_file_tag:
                         if media_file_tag['src'] in self.word_media:
                             word_to_add.word_uk_media = self.word_media[media_file_tag['src']]
                         else:
-                            l1_word["word_uk_media"] = self.get_tempfile_from_url(self.base_url.rstrip('/') + media_file_tag['src'])
                             word_to_add.word_uk_media = self.get_tempfile_from_url(self.base_url.rstrip('/') + media_file_tag['src'])
-                            self.word_media[media_file_tag['src'] ] = word_to_add.word_uk_media
-                    else:
-                        l1_word["word_uk_media"] = ''
-                else:
-                    l1_word["word_pro_uk"] = ''
-                    l1_word["word_uk_media"] = ''
+                            self.word_media[media_file_tag['src']] = word_to_add.word_uk_media
                 # US IPA
                 cur_tag = tag_entry.find("span", class_=re.compile("us\sdpron-i\s"))
                 if not cur_tag:
@@ -162,25 +155,9 @@ class CDDownloader(QObject):
                         if media_file_tag['src'] in self.word_media:
                             word_to_add.word_us_media = self.word_media[media_file_tag['src']]
                         else:
-                            l1_word["word_us_media"] = self.get_tempfile_from_url(self.base_url.rstrip('/') + media_file_tag['src'])
                             word_to_add.word_us_media = self.get_tempfile_from_url(self.base_url.rstrip('/') + media_file_tag['src'])
-                            self.word_media[media_file_tag['src'] ] = word_to_add.word_uk_media
-                    else:
-                        l1_word["word_us_media"] = ''
-                else:
-                    l1_word["word_pro_us"] = ''
-                    l1_word["word_us_media"] = ''
-                # Image
-                tag_picture = tag_entry.find(name='amp-img',attrs={'class':'dimg_i'})
-                if tag_picture:
-                    if tag_picture.attrs['src'] in self.word_media:
-                        word_to_add.word_image = self.word_media[tag_picture.attrs['src']]
-                    else:
-                        l1_word['word_image'] = self.get_tempfile_from_url(self.base_url.rstrip('/') + tag_picture.attrs['src'])
-                        word_to_add.word_image = self.get_tempfile_from_url(self.base_url.rstrip('/') + tag_picture.attrs['src'])
-                        self.word_media[tag_picture.attrs['src']] = word_to_add.word_image
-                else:
-                    l1_word['word_image'] = ''
+                            self.word_media[media_file_tag['src']] = word_to_add.word_uk_media
+               
                 l2_word = {}
                 suffix = 1
                 word_to_copy = copy.deepcopy(word_to_add)
@@ -203,6 +180,14 @@ class CDDownloader(QObject):
                             tag_l2_meaning = html_meaning.find("div", attrs={'class':'ddef_h'})
                             if not tag_l2_meaning:
                                 continue
+                            # Image
+                            tag_picture = html_meaning.find(name='amp-img',attrs={'class':'dimg_i'})
+                            if tag_picture:
+                                if tag_picture.attrs['src'] in self.word_media:
+                                    word_to_add.word_image = self.word_media[tag_picture.attrs['src']]
+                                else:
+                                    word_to_add.word_image = self.get_tempfile_from_url(self.base_url.rstrip('/') + tag_picture.attrs['src'])
+                                    self.word_media[tag_picture.attrs['src']] = word_to_add.word_image
                             word_to_add.senseId = html_meaning.attrs['data-wl-senseid']
                             tag_l2_specific_gram = tag_l2_meaning.find("span", attrs={'class':'gram dgram'})
                             word_to_add.word_specific_gram = self._prettify_string(tag_l2_specific_gram.text if tag_l2_specific_gram else '')
@@ -233,6 +218,14 @@ class CDDownloader(QObject):
                             tag_l2_meaning = html_meaning.find("div", attrs={'class':'ddef_h'})
                             if not tag_l2_meaning:
                                 continue
+                            # Image
+                            tag_picture = html_meaning.find(name='amp-img',attrs={'class':'dimg_i'})
+                            if tag_picture:
+                                if tag_picture.attrs['src'] in self.word_media:
+                                    word_to_add.word_image = self.word_media[tag_picture.attrs['src']]
+                                else:
+                                    word_to_add.word_image = self.get_tempfile_from_url(self.base_url.rstrip('/') + tag_picture.attrs['src'])
+                                    self.word_media[tag_picture.attrs['src']] = word_to_add.word_image
                             specific_m = self._prettify_string(tag_l2_meaning.text)
                             word_to_add.senseId = html_meaning.attrs['data-wl-senseid']
                             tag_l2_specific_gram = tag_l2_meaning.find("span", attrs={'class':'gram dgram'})
@@ -270,6 +263,9 @@ class CDDownloader(QObject):
         if not url_in:
             return None
         data = self.get_data_from_url(url_in)
+        if data == None:
+            return None
+
         self.file_extension = '.' + url_in.split('.')[-1]
         # We put the data into RAM first so that we don’t have to
         # clean up the temp file when the get does not work.  (Bad
@@ -293,8 +289,7 @@ class CDDownloader(QObject):
         try:
             response = urlopen(request)
         except URLError as e:
-            QMessageBox.warning(mw,'URL error',e.reason.strip())
-            return ''
+            return None
         
         if 200 != response.code:
             raise ValueError(str(response.code) + ': ' + response.msg)
@@ -311,7 +306,13 @@ class CDDownloader(QObject):
         self.user_url = ''
         self.word = ''
         self.word_data.clear()
-        self.word_media = {}
+        #try:
+        #    if self.word_media:
+        #        for k,v in self.word_media.items():
+        #            os.remove(v)
+        #        self.word_media = {}
+        #except :
+        self.word_media = {}        
         self.wordlist.clear()
         self.word_id = ''
         self.wordlist_entry = None
@@ -330,8 +331,8 @@ class CDDownloader(QObject):
             # https://dictionary.cambridge.org/plus/wordlist/21215803/entries/100/
         
             url_for_request = urljoin(self.base_url,'plus/wordlist/')
-            url_for_request = urljoin(url_for_request,str(wordlist_id)+'/entries/')
-            url_for_request = urljoin(url_for_request,str(n)+'/')        
+            url_for_request = urljoin(url_for_request,str(wordlist_id) + '/entries/')
+            url_for_request = urljoin(url_for_request,str(n) + '/')        
 
             req = Request(url_for_request)
             req.add_header('Accept-Language', 'en-US')
@@ -361,22 +362,29 @@ class CDDownloader(QObject):
                 #"headword": "walk-on part",
                 #"senseId": "ID_00035581_01",
                 #"dictCode": "English",
-                #"definition": "A walk-on part in a play is a very small part in which the actor is on the stage for a short time and speaks very few or no words.",
+                #"definition": "A walk-on part in a play is a very small part
+                #in which the actor is on the stage for a short time and speaks
+                #very few or no words.",
                 #"translation": "",
                 #"pos": "noun",
                 #"soundUK": "/CUK01223",
                 #"soundUS": "/CUS02231",
-                #"soundUKMp3": "https://dictionary.cambridge.org/media/english/uk_pron/c/cuk/cuk01/cuk01223.mp3",
-                #"soundUKOgg": "https://dictionary.cambridge.org/media/english/uk_pron_ogg/c/cuk/cuk01/cuk01223.ogg",
-                #"soundUSMp3": "https://dictionary.cambridge.org/media/english/us_pron/c/cus/cus02/cus02231.mp3",
-                #"soundUSOgg": "https://dictionary.cambridge.org/media/english/us_pron_ogg/c/cus/cus02/cus02231.ogg",
+                #"soundUKMp3":
+                #"https://dictionary.cambridge.org/media/english/uk_pron/c/cuk/cuk01/cuk01223.mp3",
+                #"soundUKOgg":
+                #"https://dictionary.cambridge.org/media/english/uk_pron_ogg/c/cuk/cuk01/cuk01223.ogg",
+                #"soundUSMp3":
+                #"https://dictionary.cambridge.org/media/english/us_pron/c/cus/cus02/cus02231.mp3",
+                #"soundUSOgg":
+                #"https://dictionary.cambridge.org/media/english/us_pron_ogg/c/cus/cus02/cus02231.ogg",
                 #"wordlistId": 21215803,
-                #"entryUrl": "https://dictionary.cambridge.org/dictionary/english/walk-on-part"
+                #"entryUrl":
+                #"https://dictionary.cambridge.org/dictionary/english/walk-on-part"
                 #},
       
     def delete_word_from_wordlist(self, wl_entry):
 
-        req = Request(self.cambridge_plus_api_url+'deleteWordlistEntry')
+        req = Request(self.cambridge_plus_api_url + 'deleteWordlistEntry')
         req.add_header('Content-Type','application/json')
 
         req.add_header('Accept-Language', 'en-US')
@@ -426,7 +434,7 @@ class wordlist_entry():
     This class represent a single entry from Cambridge Wordlist.
     """
 
-    def __init__(self,word = None, ref = None, l2_meaning = None, dataWordID = None, wordlist_id = None):
+    def __init__(self,word=None, ref=None, l2_meaning=None, dataWordID=None, wordlist_id=None):
         self.wordlist_id = wordlist_id
         self.senseId = ''
         self.word = word
@@ -470,7 +478,7 @@ class word_entry():
 # This code for debugging purposes
 #ad = CDDownloader()
 #ad.language = 'en'
-#ad.user_url = 'https://dictionary.cambridge.org/dictionary/english/chickenshit'
+#ad.user_url = 'https://dictionary.cambridge.org/dictionary/english/pit'
 #ad.get_word_defs()
 #ad = None
 
