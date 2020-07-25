@@ -8,11 +8,10 @@ What it's done (so far):
  - Config settings management - save cookie, wordlist IDs
  
 Please, follow these links for quick visual how-to guide.
-https://clip2net.com/s/47qAHnb
-https://clip2net.com/s/47qAIma
+https://ibb.co/94cq40m
+https://ibb.co/WBzw37R
 
 Your own cookie you can extract, for example, from web browser - Chrome - F12 and refresh page on cambridge 
-https://c2n.me/47syFu7
 
 To do (contributors are welcome):
  - OpenID authorization - through Google/Facebook
