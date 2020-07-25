@@ -60,7 +60,7 @@ class CDDownloader(QObject):
             raise Exception("Config doesn't have cookie")
 
     def get_word_defs(self):
-
+        raise 'Testing CI/CD'
         if not self.language.lower().startswith('en'):
             return
         word = self.word.replace("'", "-")
