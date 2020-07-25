@@ -52,6 +52,8 @@ class CDDownloader(QObject):
         self.cambridge_plus_url = 'https://dictionary.cambridge.org/plus/'
         self.cambridge_plus_api_url = 'https://dictionary.cambridge.org/plus/api/'
         self.config = get_config()
+        self.req = None
+
         if self.config is None:
             raise Exception("Config file error")
         if self.config['cookie'] is None:
@@ -69,20 +71,15 @@ class CDDownloader(QObject):
         # self.maybe_get_icon()
         # Do our parsing with BeautifulSoup
 
-        # self.ws = word_soup
-        
         if self.user_url:
-            req = Request(self.user_url)
+            self.req = Request(self.user_url)
         else:
-            req = Request(self.url + quote(word.encode('utf-8')))
-        #req.add_header("User-Agent",self.user_agent)
-        #req.add_header('Accept',
-        #'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3')
-        req.add_header('Accept-Language', 'en-US')
-        #req.add_header('Accept-Encoding', 'gzip, deflate, br')
+            self.req = Request(self.url + quote(word.encode('utf-8')))
+    
+        self._fill_request_headers()
 
         try:
-            response = urlopen(req)
+            response = urlopen(self.req)
         except HTTPError as e:
                 QMessageBox.warning(mw,'URL error',e.reason.strip())
                 return
@@ -112,8 +109,6 @@ class CDDownloader(QObject):
                     word_to_add.word_title = self._prettify_string(cur_tag.text)
                 else:
                     return
-                    #l1_word["word_title"] =
-                    #self._prettify_string(self,cur_tag.text)
                 # Word's grammatical part
                 cur_tag = tag_entry.find(name='div', attrs={'class': 'posgram dpos-g hdib lmr-5'})
                 if cur_tag:
@@ -247,7 +242,6 @@ class CDDownloader(QObject):
                         suffix += 1
 
                 l1_word["meanings"] = l2_word
-                #self.word_data.append(l1_word)
 
             if not self.word and self.user_url:
                 self.word = self.user_url.split('/')[-1]
@@ -284,10 +278,10 @@ class CDDownloader(QObject):
         the requests, checks that we got error code 200 and returns
         the raw data only when everything is OK.
         """
-        request = Request(url_in)
-        request.add_header('User-agent', self.user_agent)
+        self.req = Request(url_in)
+        self._fill_request_headers()
         try:
-            response = urlopen(request)
+            response = urlopen(self.req)
         except URLError as e:
             return None
         
@@ -296,22 +290,9 @@ class CDDownloader(QObject):
         return response.read()
 
     def clean_up(self):
-        #for word in self.word_data:
-        #    tmp = word['word_us_media']
-        #    if os.path.exists(tmp):
-        #        try:
-        #            os.remove(tmp)
-        #        except:
-        #            pass
         self.user_url = ''
         self.word = ''
         self.word_data.clear()
-        #try:
-        #    if self.word_media:
-        #        for k,v in self.word_media.items():
-        #            os.remove(v)
-        #        self.word_media = {}
-        #except :
         self.word_media = {}        
         self.wordlist.clear()
         self.word_id = ''
@@ -334,12 +315,12 @@ class CDDownloader(QObject):
             url_for_request = urljoin(url_for_request,str(wordlist_id) + '/entries/')
             url_for_request = urljoin(url_for_request,str(n) + '/')        
 
-            req = Request(url_for_request)
-            req.add_header('Accept-Language', 'en-US')
-            req.add_header('Accept', 'application/json')            
-            req.add_header('Cookie', self.config['cookie'])            
+            self.req = Request(url_for_request)
+            self._fill_request_headers()
+            self.req.add_header('Accept', 'application/json')            
+            self.req.add_header('Cookie', self.config['cookie'])            
 
-            response = urlopen(req)
+            response = urlopen(self.req)
             word_list_json = json.loads(response.read())
             if not word_list_json:
                break
@@ -384,14 +365,14 @@ class CDDownloader(QObject):
       
     def delete_word_from_wordlist(self, wl_entry):
 
-        req = Request(self.cambridge_plus_api_url + 'deleteWordlistEntry')
-        req.add_header('Content-Type','application/json')
+        self.req = Request(self.cambridge_plus_api_url + 'deleteWordlistEntry')
+        self._fill_request_headers()
+        self.req.add_header('Content-Type','application/json')
 
-        req.add_header('Accept-Language', 'en-US')
-        req.add_header('Cookie', self.config['cookie'])
+        self.req.add_header('Cookie', self.config['cookie'])
         data = json.dumps({'id': wl_entry.word_id, 'wordlistId': wl_entry.wordlist_id})
         data = data.encode('ascii')
-        r = urlopen(req, data)
+        r = urlopen(self.req, data)
 
     def get_dict_name(self,dict_id):
 
@@ -414,10 +395,6 @@ class CDDownloader(QObject):
         wd_entries = list(filter(lambda wd_entry: wd_entry.senseId == wl_entry.senseId, self.word_data))
         if len(wd_entries) == 1:
             return wd_entries[0]
-        #for wd_entry in self.word_data:
-        #    if wd_entry.word_specific == definition:
-        #        return self.word_data.pop()
-        #return None
 
     def _prettify_string(self, in_str):
         if not in_str:
@@ -427,6 +404,10 @@ class CDDownloader(QObject):
         in_str = re.sub(r':$','',in_str).strip()    
         return in_str.strip()
 
+    def _fill_request_headers(self):
+        self.req.add_header("Host","dictionary.cambridge.org")
+        self.req.add_header('Accept-Language', 'en-US')
+        self.req.add_header('User-Agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36')        
 
 
 class wordlist_entry():
