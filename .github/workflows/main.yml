@@ -30,8 +30,8 @@ jobs:
 
       - name: Listing
         env:
-          TARGET_ARCHIVE: /tmp/${{ env.GITHUB_SHA }}.zip
-        run: echo "$TARGET_ARCHIVE"
+          TARGET_ARCHIVE: ${{ env.GITHUB_SHA }}
+        run: echo "/temp/$TARGET_ARCHIVE.zip"
         
       - name: Uploaad to ankiweb.net
         uses: fjogeleit/http-request-action@master
