@@ -41,7 +41,7 @@ jobs:
         env:
           ANKILOGIN: ${{ secrets.ANKILOGIN }}
           ANKIPASSWORD: ${{ secrets.ANKIPASSWORD }}
-          CSRF: "cat token.txt"
+          CSRF: $(cat token.txt)
         run: |
            echo "$CSRF" #curl -d 'submitted=1&csrf_token=eyJvcCI6ICJsb2dpbiIsICJpYXQiOiAxNjE0NTM5OTg3LCAiaXAiOiAiMzcuMTUwLjIxNy4yMzAifQ.CnmEtHOzZ5ppNYiwdLMa8So-tgjHeTyGoZa9l3Oj5aA&username=am_silex%40mail.ru&password=3GPB3%21Nvfj9NKu3' -b 'ankiweb=login' -v https://ankiweb.net/account/login
  
