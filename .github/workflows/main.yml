@@ -29,6 +29,8 @@ jobs:
         run: zip -r $TARGET_ARCHIVE . -x '*.git*' '.github'
 
       - name: Listing
+        env:
+          TARGET_ARCHIVE: /tmp/${{ env.GITHUB_SHA }}.zip
         run: echo "$TARGET_ARCHIVE"
         
       - name: Uploaad to ankiweb.net
