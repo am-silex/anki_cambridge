@@ -39,7 +39,7 @@ jobs:
           
       - name: Auth with Anki
         env:
-          CSRF: ${{ cat token.txt }}
+          CSRF: cat token.txt
         run: |
           curl -X POST -F 'username:${{ secrets.ANKILOGIN }}' -F 'password:${{ secrets.ANKIPASSWORD }}' -F 'csrf_token:$CSRF' -c cookie.txt,
           cat cookie.txt
