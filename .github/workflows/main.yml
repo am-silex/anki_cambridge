@@ -37,11 +37,14 @@ jobs:
       - name: Retrieve CSRF token
         run: echo ${{ steps.authRequest.outputs.response }} | grep  -oP 'csrf_token" value="\K([^"]+)' > token.txt
           
+      - name: Secrets
+        with:
+          ANKILOGIN: ${{ secrets.ANKILOGIN }}
+          ANKIPASSWORD: ${{ secrets.ANKIPASSWORD }}
+      
       - name: Auth with Anki
-        env:
-          CSRF: cat token.txt
         run: |
-          curl -X POST -F 'username=${{ secrets.ANKILOGIN }}' -F 'password=${{ secrets.ANKIPASSWORD }}' -F 'csrf_token=$CSRF' -c cookie.txt https://ankiweb.net/account/login
+          curl -X POST -F 'username=$ANKILOGIN' -F 'password=$ANKIPASSWORD' -F 'csrf_token=$CSRF' -c cookie.txt https://ankiweb.net/account/login
           cat cookie.txt 
         
      
