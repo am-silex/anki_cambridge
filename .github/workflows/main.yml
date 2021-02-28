@@ -27,18 +27,9 @@ jobs:
       - name: Archive all repo for sending
         run: zip -r /tmp/${{ env.GITHUB_SHA }}.zip . -x '*.git*' '.github'
         
-      - name: Retrieve secrets
-        env: # Or as an environment variable
-          ANKI_LOGIN: ${{ secrets.ANKILOGIN }}
-          ANKI_PASSWORD: ${{ secrets.ANKIPASSWORD }}
-          
-      - name: Listing
-        run: echo ${{ ANKI_LOGIN }}
+      -name: listing
+        run: echo '/tmp/${{ env.GITHUB_SHA }}.zip'
         
-      - name: Uploaad to ankiweb.net
-        uses: fjogeleit/http-request-action@master
-        with:
-          url: 'https://ankiweb.net/shared/upload'
-          method: 'GET'
+
 
 
