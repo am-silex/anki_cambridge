@@ -22,41 +22,46 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
       
       - name: Archive all repo for sending
-        env:
-          TARGET_ARCHIVE: /tmp/$GITHUB_SHA.zip
-        run: zip -r $TARGET_ARCHIVE . -x '*.git*' '.github'
+        run: zip -r $GITHUB_WORKSPACE/$GITHUB_SHA.zip . -x '*.git*' '.github',
 
-      - name: Listing
-        env:
-          TARGET_ARCHIVE: ${{ env.GITHUB_SHA }}
-        run: echo "/temp/$TARGET_ARCHIVE.zip"
-        
-      - name: Uploaad to ankiweb.net
+      - name: Get csrf token from Anki
+        id: authRequest
         uses: fjogeleit/http-request-action@master
-        env:
-          ANKI_LOGIN: ${{ secrets.ANKILOGIN }}
-          ANKI_PASSWORD: ${{ secrets.ANKIPASSWORD }}  
         with:
-          url: 'https://ankiweb.net/shared/upload'
+          url: 'https://ankiweb.net/account/login'
           method: 'GET'
-          username: $ANKI_LOGIN
-          password: $ANKI_PASSWORD
-          data: >-
-            { 
-            "title": "Cambridge Dictionary",
-            'tags' : 'cambridge, addon, wordlists',
-            'supportURL' : 'https://github.com/am-silex/anki_cambridge',
-            'minVer0' : '0',
-            'maxVer0' : '0',
-            'desc' : 'Test desc - to be replaced',
-            'id' : '1875288089',
-            'submit' : 'Update'
-            }
-          files: '{ "v21file0": "$TARGET_ARCHIVE" }'
-
+    
+      - name: Retrieve CSRF token
+        run: echo ${{ steps.authRequest.outputs.response }} | grep  -oP 'csrf_token" value="\K([^"]+)' > token.txt
+          
+      - name: Auth with Anki
+        env:
+          ANKILOGIN: ${{ secrets.ANKILOGIN }}
+          ANKIPASSWORD: ${{ secrets.ANKIPASSWORD }}
+          
+        run: |
+          CSRF=$(cat token.txt)          
+          curl -d 'submitted=1&csrf_token='$CSRF'&username='$ANKILOGIN'&password='$ANKIPASSWORD https://ankiweb.net/account/login -c $GITHUB_WORKSPACE/cookie -b 'ankiweb=login' > null
+          echo "ANKI_COOKIE="$(cat $GITHUB_WORKSPACE/cookie | grep -oP '^#HttpOnly_ankiweb.net.+ankiweb\s+\K.+$') >> $GITHUB_ENV
         
-
-
-
+        
+      - name: Upload to anki
+        run: >
+          curl
+          -F 'title=Cambridge Dictionary'
+          -F 'tags=cambridge, addon, wordlists'
+          -F 'supportURL=https://github.com/am-silex/anki_cambridge'
+          -F 'minVer0=0'
+          -F 'maxVer0=0'
+          -F 'desc=Test desc - to be replaced'
+          -F 'id=1875288089'
+          -F 'submit=Update'
+          -F 'file=@${{ github.workspace }}/${{ github.sha }}.zip;filename=v21file0'
+          -b 'ankiweb=${{ env.ANKI_COOKIE }}'
+          https://ankiweb.net/shared/upload
+          
+        
+      
