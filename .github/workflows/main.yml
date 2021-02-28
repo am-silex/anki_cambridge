@@ -25,9 +25,30 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Archive all repo for sending
-        run: zip -r /tmp/env.GITHUB_SHA.zip . -x '*.git*' '.github'
+        run: zip -r /tmp/${{ env.GITHUB_SHA.zip }} . -x '*.git*' '.github'
         
-      - name: List all files
-        run: ls -l
-
+#      - name: Retrieve secrets
+ #       env: # Or as an environment variable
+  #        ANKI_LOGIN: ${{ secrets.ANKILOGIN }}
+ #       ANKI_PASSWORD: ${{ secrets.ANKIPASSWORD }}
+        
+      - name: Uploaad to ankiweb.net
+        uses: fjogeleit/http-request-action@master
+        with:
+          url: 'https://ankiweb.net/shared/upload'
+          method: 'POST'
+          username: ${{ secrets.ANKILOGIN }}
+          password: ${{ secrets.ANKIPASSWORD }}
+          data: >-
+            { 
+            "title": "Cambridge Dictionary",
+            'tags' : 'cambridge, addon, wordlists',
+            'supportURL' : 'https://github.com/am-silex/anki_cambridge',
+            'minVer0' : '0',
+            'maxVer0' : '0',
+            'desc' : 'Test desc - to be replaced',
+            'id' : '1875288089',
+            'submit' : 'Update'
+            }
+          files: '{ "v21file0": "/tmp/${{ env.GITHUB_SHA.zip }}" }'
 
