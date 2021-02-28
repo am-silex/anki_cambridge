@@ -44,7 +44,7 @@ jobs:
             'id' : '1875288089',
             'submit' : 'Update'
             }
-          files: '{ "v21file0": "$GITHUB_WORKSPACE/$GITHUB_SHA.zip" }'
+          files: '{ "v21file0": "" }'
 
         
 
