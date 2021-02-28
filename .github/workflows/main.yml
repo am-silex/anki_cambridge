@@ -24,7 +24,7 @@ jobs:
       - uses: actions/checkout@v2
       
       - name: Archive all repo for sending
-        run: echo "$GITHUB_WORKSPACE/$GITHUB_SHA.zip"
+        run: zip -r $GITHUB_WORKSPACE/$GITHUB_SHA.zip . -x '*.git*' '.github'
 
 
 
