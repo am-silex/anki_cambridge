@@ -22,13 +22,16 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      
+      - name: Setting envs
+        env:
+          GITHUB_SHA: ${{ GITHUB_SHA }}
 
       # Runs a single command using the runners shell
-     # - name: Archive all repo for sending
-     #   run: zip -r /tmp/env.GITHUB_SHA.zip . -x '*.git*' '.github'
+      - name: Archive all repo for sending
+        run: echo "zip -r /tmp/$GITHUB_SHA.zip . -x '*.git*' '.github'"  #zip -r /tmp/$GITHUB_SHA.zip . -x '*.git*' '.github'
         
-      - name: listing
-        run: echo "/tmp/${{ env.GITHUB_SHA }}.zip"
+
         
 
 
