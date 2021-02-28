@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: Autodeploy on ankiweb.net
 
 # Controls when the action will run. 
 on:
@@ -22,13 +22,41 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      
+      - name: Archive all repo for sending
+        env:
+          TARGET_ARCHIVE: /tmp/$GITHUB_SHA.zip
+        run: zip -r $TARGET_ARCHIVE . -x '*.git*' '.github'
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Listing
+        env:
+          TARGET_ARCHIVE: ${{ env.GITHUB_SHA }}
+        run: echo "/temp/$TARGET_ARCHIVE.zip"
+        
+      - name: Uploaad to ankiweb.net
+        uses: fjogeleit/http-request-action@master
+        env:
+          ANKI_LOGIN: ${{ secrets.ANKILOGIN }}
+          ANKI_PASSWORD: ${{ secrets.ANKIPASSWORD }}  
+        with:
+          url: 'https://ankiweb.net/shared/upload'
+          method: 'GET'
+          username: $ANKI_LOGIN
+          password: $ANKI_PASSWORD
+          data: >-
+            { 
+            "title": "Cambridge Dictionary",
+            'tags' : 'cambridge, addon, wordlists',
+            'supportURL' : 'https://github.com/am-silex/anki_cambridge',
+            'minVer0' : '0',
+            'maxVer0' : '0',
+            'desc' : 'Test desc - to be replaced',
+            'id' : '1875288089',
+            'submit' : 'Update'
+            }
+          files: '{ "v21file0": "$TARGET_ARCHIVE" }'
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
-        run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+        
+
+
+
