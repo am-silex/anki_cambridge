@@ -28,7 +28,7 @@ jobs:
      #   run: zip -r /tmp/env.GITHUB_SHA.zip . -x '*.git*' '.github'
         
       - name: listing
-        run: echo "/tmp/$env.GITHUB_SHA.zip"
+        run: echo "/tmp/env.GITHUB_SHA.zip"
         
 
 
