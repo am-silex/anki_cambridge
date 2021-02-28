@@ -25,8 +25,9 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Archive all repo for sending
-        run: |
-          zip -r /tmp/env.GITHUB_SHA.zip . -i .*,
-          ls -l 
+        run: zip -r /tmp/env.GITHUB_SHA.zip .
+        
+      - name: List all files
+        run: ls -l
 
 
