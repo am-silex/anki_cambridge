@@ -41,9 +41,10 @@ jobs:
         env:
           ANKILOGIN: ${{ secrets.ANKILOGIN }}
           ANKIPASSWORD: ${{ secrets.ANKIPASSWORD }}
+          CSRF: cat token.txt
         run: |
-          curl -X POST -F 'username="$ANKILOGIN"' -F 'password="$ANKIPASSWORD"' -F 'csrf_token="$CSRF"' -c cookie.txt https://ankiweb.net/account/login
-          cat cookie.txt 
+           curl -X POST  -d 'submitted=1&csrf_token="$CSRF"&username="$ANKILOGIN"&password="$ANKIPASSWORD"' https://ankiweb.net/account/login -v -c cookie.txt -b 'ankiweb=login' -v,
+            cat cookie.txt 
         
      
 
