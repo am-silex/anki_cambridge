@@ -24,11 +24,11 @@ jobs:
       - uses: actions/checkout@v2
 
       # Runs a single command using the runners shell
-      - name: Archive all repo for sending
-        run: zip -r /tmp/${{ env.GITHUB_SHA }}.zip . -x '*.git*' '.github'
+     # - name: Archive all repo for sending
+     #   run: zip -r /tmp/env.GITHUB_SHA.zip . -x '*.git*' '.github'
         
       - name: listing
-        run: echo '/tmp/${{ env.GITHUB_SHA }}.zip'
+        run: echo "/tmp/$env.GITHUB_SHA.zip"
         
 
 
