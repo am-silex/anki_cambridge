@@ -26,7 +26,7 @@ jobs:
       - name: Archive all repo for sending
         env:
           TARGET_ARCHIVE: ${{ env.GITHUB_WORKSPACE }}/${{ env.GITHUB_SHA }}.zip
-        run: echo "$GITHUB_WORKSPACE"
+        run: echo "$TARGET_ARCHIVE"
 
 
 
