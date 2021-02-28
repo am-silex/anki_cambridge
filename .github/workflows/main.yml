@@ -27,10 +27,14 @@ jobs:
         run: zip -r $GITHUB_WORKSPACE/$GITHUB_SHA.zip . -x '*.git*' '.github',
 
       - name: Uploaad to ankiweb.net
+        id: myRequest
         uses: fjogeleit/http-request-action@master
         with:
           url: 'https://ankiweb.net/shared/upload'
           method: 'GET'
+          
+      - name: Show http request
+        run: echo ${{ steps.myRequest.outputs.response }}
 
 
         
