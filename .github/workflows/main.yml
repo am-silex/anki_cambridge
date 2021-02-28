@@ -43,9 +43,9 @@ jobs:
             'maxVer0' : '0',
             'desc' : 'Test desc - to be replaced',
             'id' : '1875288089',
-            'submit' : 'Update',
-            'v21file0' : ''
+            'submit' : 'Update'
             }
+          files: '{ "v21file0": "$GITHUB_WORKSPACE/$GITHUB_SHA.zip" }'
           
       - name: Show http request
         run: echo ${{ steps.myRequest.outputs.response }}
