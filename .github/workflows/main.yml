@@ -25,7 +25,7 @@ jobs:
       
       - name: Archive all repo for sending
         env:
-          TARGET_ARCHIVE: /tmp/$GITHUB_SHA.zip
+          TARGET_ARCHIVE: /tmp/${{ env.GITHUB_SHA }}.zip
         run: zip -r $TARGET_ARCHIVE . -x '*.git*' '.github'
 
       - name: Listing
