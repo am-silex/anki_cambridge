@@ -27,7 +27,7 @@ jobs:
       - name: Archive all repo for sending
         run: zip -r $GITHUB_WORKSPACE/$GITHUB_SHA.zip . -x '*.git*' '.github',
 
-      - name: Auth with Anki
+      - name: Get csrf token from Anki
         id: authRequest
         uses: fjogeleit/http-request-action@master
         with:
@@ -36,12 +36,17 @@ jobs:
     
       - name: Retrieve CSRF token
         run: echo ${{ steps.authRequest.outputs.response }} | grep  -oP 'csrf_token" value="\K([^"]+)' > token.txt
-
-      - name: Show token
-        run: cat token.txt
           
-      
+      - name: Auth with Anki
+        env:
+          CSRF: cat token.txt
+        run: |
+          curl -X POST -F 'username:${{secrets.ANKILOGIN}}' -F 'username:${{secrets.ANKIPASSWORD}}' -F 'username:$CSRF' -c cookie.txt,
+          cat cookie.txt
+        
       - name: Uploaad to ankiweb.net
+        env:
+         CSRF: ${{ cat token.txt }} 
         id: myRequest
         uses: fjogeleit/http-request-action@master
         with:
