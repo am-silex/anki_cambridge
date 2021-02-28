@@ -25,7 +25,7 @@ jobs:
       
       - name: Setting envs
         env:
-          GITHUB_SHA: ${{ GITHUB_SHA }}
+          GITHUB_SHA: ${{ env.GITHUB_SHA }}
         run: echo "$GITHUB_SHA"
 
       # Runs a single command using the runners shell
