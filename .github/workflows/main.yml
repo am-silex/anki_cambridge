@@ -34,21 +34,9 @@ jobs:
           url: 'https://ankiweb.net/account/login'
           method: 'GET'
     
-      - name: Save auth response
-        run: echo ${{ steps.authRequest.outputs.response }} > login.html,
-          
       - name: Retrieve CSRF token
-        run: |
-          echo "from bs4 import BeautifulSoup
-            f = open("login.html", "r")
-            html = f.read()
-            soup = BeautifulSoup(html)
-            token = soup.find('input', {'name':'csrf_token'})['value']
-            t = open("csrf_token.txt", "w")
-            t.write(token)
-            t.close()" > py.py,
-          python py.py
-            
+        run: echo ${{ steps.authRequest.outputs.response }} | grep  -oP 'csrf_token" value="\K([^"]+)' > token.txt
+
       - name: Show token
         run: cat token.txt
           
