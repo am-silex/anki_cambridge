@@ -44,7 +44,7 @@ jobs:
           CSRF: cat token.txt
         run: |
            curl -X POST  -d 'submitted=1&csrf_token="$CSRF"&username="$ANKILOGIN"&password="$ANKIPASSWORD"' -c ./cookie.txt -b 'ankiweb=login' -v https://ankiweb.net/account/login
-            cat cookie.txt 
+            cat ./cookie.txt 
         
      
 
