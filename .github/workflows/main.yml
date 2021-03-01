@@ -43,8 +43,8 @@ jobs:
           ANKIPASSWORD: ${{ secrets.ANKIPASSWORD }}
           
         run: |
-          CSRF=$(cat token.txt)
-          curl -d 'submitted=1&csrf_token="$CSRF"&username="$ANKILOGIN"&password="$ANKIPASSWORD"' -b 'ankiweb=login' -c $GITHUB_WORKSPACE/cookie.txt https://ankiweb.net/account/login > null
+          CSRF=$(cat token.txt)          
+          curl -d 'submitted=1&csrf_token='$CSRF'&username='$ANKILOGIN'&password='$ANKIPASSWORD https://ankiweb.net/account/login -c $GITHUB_WORKSPACE/cookie.txt -b 'ankiweb=login' > null
           cat $GITHUB_WORKSPACE/cookie.txt
  
         
