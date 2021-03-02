@@ -45,8 +45,30 @@ jobs:
         run: |
           CSRF=$(cat token.txt)          
           curl -d 'submitted=1&csrf_token='$CSRF'&username='$ANKILOGIN'&password='$ANKIPASSWORD https://ankiweb.net/account/login -c $GITHUB_WORKSPACE/cookie.txt -b 'ankiweb=login' -v
-          echo "$CSRF"
-          #cat $GITHUB_WORKSPACE/cookie.txt
+        
+      - name: Uploading on ankiweb.net
+        env:
+          ANKILOGIN: ${{ secrets.ANKILOGIN }}
+          ANKIPASSWORD: ${{ secrets.ANKIPASSWORD }}
+        uses: fjogeleit/http-request-action@master
+        with:
+          url: 'https://ankiweb.net/shared/upload'
+          username: $ANKILOGIN
+          password: $ANKIPASSWORD
+          method: 'POST'
+          data: >-
+            { 
+            "title": "Cambridge Dictionary",
+            'tags' : 'cambridge, addon, wordlists',
+            'supportURL' : 'https://github.com/am-silex/anki_cambridge',
+            'minVer0' : '0',
+            'maxVer0' : '0',
+            'desc' : 'Test desc - to be replaced',
+            'id' : '1875288089',
+            'submit' : 'Update'
+            }
+          files: '{ "v21file0": $GITHUB_WORKSPACE/$GITHUB_SHA.zip }'
+        
 
  
         
