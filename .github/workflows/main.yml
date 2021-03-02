@@ -44,7 +44,7 @@ jobs:
           
         run: |
           CSRF=$(cat token.txt)          
-          curl -d 'submitted=1&csrf_token='$CSRF'&username='$ANKILOGIN'&password='$ANKIPASSWORD https://ankiweb.net/account/login -c $GITHUB_WORKSPACE/cookie.txt -b 'ankiweb=login' -v
+          curl -d 'submitted=1&csrf_token='$CSRF'&username='$ANKILOGIN'&password='$ANKIPASSWORD https://ankiweb.net/account/login -c $GITHUB_WORKSPACE/cookie.txt -b 'ankiweb=login' > null
         
       - name: Uploading on ankiweb.net
         env:
@@ -56,6 +56,7 @@ jobs:
           username: $ANKILOGIN
           password: $ANKIPASSWORD
           method: 'POST'
+          customHeaders: '{ "cookie": "ankiweb=login" }'
           data: >-
             { 
             "title": "Cambridge Dictionary",
