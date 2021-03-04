@@ -51,7 +51,8 @@ jobs:
         id: myRequest
         uses: fjogeleit/http-request-action@master
         with:
-          url: 'https://ankiweb.net/shared/upload'          
+          url: 'https://postman-echo.com/post'
+          #'https://ankiweb.net/shared/upload'          
           method: 'POST'
           customHeaders: '{ "cookie": "ankiweb=${{ env.ANKI_COOKIE }}" }'
           data: >-
