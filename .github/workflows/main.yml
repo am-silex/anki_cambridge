@@ -47,6 +47,7 @@ jobs:
           curl -d 'submitted=1&csrf_token='$CSRF'&username='$ANKILOGIN'&password='$ANKIPASSWORD https://ankiweb.net/account/login -c $GITHUB_WORKSPACE/cookie.txt -b 'ankiweb=login' > null
           echo "ANKI_COOKIE="$(cat $GITHUB_WORKSPACE/cookie.txt | grep -oP '^#HttpOnly_ankiweb.net.+ankiweb\s+\K.+$') >> $GITHUB_ENV
         
+        
       - name: Uploading on ankiweb.net
         id: myRequest
         uses: fjogeleit/http-request-action@master
@@ -57,7 +58,7 @@ jobs:
           customHeaders: '{ "cookie": "ankiweb=${{ env.ANKI_COOKIE }}" }'
           data: >-
             '{ 
-            "title": "Cambridge Dictionary",
+            "title": 'Cambridge Dictionary',
             'tags' : 'cambridge, addon, wordlists',
             'supportURL' : 'https://github.com/am-silex/anki_cambridge',
             'minVer0' : '0',
