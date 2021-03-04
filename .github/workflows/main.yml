@@ -64,7 +64,7 @@ jobs:
             'id' : '1875288089',
             'submit' : 'Update'
             }
-          files: '{ "v21file0": "github.workspace/github.sha.zip" }'
+          files: '{ "v21file0": "$ {{ github.workspace }}/github.sha.zip" }'
 
         
 
