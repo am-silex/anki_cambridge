@@ -49,7 +49,7 @@ jobs:
         
       - name: Uploading on ankiweb.net
         env:
-          GITHUB_WORKSPACE: ${{ github.GITHUB_WORKSPACE }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
           GITHUB_SHA: ${{ github.GITHUB_SHA }}
         uses: fjogeleit/http-request-action@master
         with:
@@ -67,7 +67,7 @@ jobs:
             'id' : '1875288089',
             'submit' : 'Update'
             }
-          files: '{ "v21file0": "${{ github.GITHUB_WORKSPACE }}/${{ github.GITHUB_SHA }}.zip" }'
+          files: '{ "v21file0": "${{ github.workspace }}/${{ github.GITHUB_SHA }}.zip" }'
 
         
 
