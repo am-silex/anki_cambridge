@@ -45,18 +45,14 @@ jobs:
         run: |
           CSRF=$(cat token.txt)          
           curl -d 'submitted=1&csrf_token='$CSRF'&username='$ANKILOGIN'&password='$ANKIPASSWORD https://ankiweb.net/account/login -c $GITHUB_WORKSPACE/cookie.txt -b 'ankiweb=login' > null
+          echo ::set-env name=ANKI_COOKIE::$(cat $GITHUB_WORKSPACE/cookie.txt | grep -oP '^#HttpOnly_ankiweb.net.+ankiweb\s+\K.+$')
         
       - name: Uploading on ankiweb.net
-        env:
-          ANKILOGIN: ${{ secrets.ANKILOGIN }}
-          ANKIPASSWORD: ${{ secrets.ANKIPASSWORD }}
         uses: fjogeleit/http-request-action@master
         with:
-          url: 'https://ankiweb.net/shared/upload'
-          username: $ANKILOGIN
-          password: $ANKIPASSWORD
+          url: 'https://ankiweb.net/shared/upload'          
           method: 'POST'
-          customHeaders: '{ "cookie": "ankiweb=login" }'
+          customHeaders: '{ "cookie": "ankiweb="${{ env.ANKI_COOKIE }} }'
           data: >-
             { 
             "title": "Cambridge Dictionary",
