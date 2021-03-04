@@ -47,44 +47,20 @@ jobs:
           curl -d 'submitted=1&csrf_token='$CSRF'&username='$ANKILOGIN'&password='$ANKIPASSWORD https://ankiweb.net/account/login -c $GITHUB_WORKSPACE/cookie.txt -b 'ankiweb=login' > null
           echo "ANKI_COOKIE="$(cat $GITHUB_WORKSPACE/cookie.txt | grep -oP '^#HttpOnly_ankiweb.net.+ankiweb\s+\K.+$') >> $GITHUB_ENV
         
-        
-      - name: Uploading on ankiweb.net
-        id: myRequest
-        uses: fjogeleit/http-request-action@master
-        with:
-          url: 'https://postman-echo.com/post'
-          #'https://ankiweb.net/shared/upload'
-          method: 'POST'
-          customHeaders: '{ "cookie": "ankiweb=${{ env.ANKI_COOKIE }}" }'
-          data: >-
-            '{ 
-            "title": 'Cambridge Dictionary',
-            'tags' : 'cambridge, addon, wordlists',
-            'supportURL' : 'https://github.com/am-silex/anki_cambridge',
-            'minVer0' : '0',
-            'maxVer0' : '0',
-            'desc' : 'Test desc - to be replaced',
-            'id' : '1875288089',
-            'submit' : 'Update'
-            }'
-          files: '{ "v21file0": "${{ github.workspace }}/${{ github.sha }}.zip" }'
+      - name: Upload to anki
+        run: |
+          curl -d \
+          'title="Cambridge Dictionary"&\
+          tags="cambridge, addon, wordlists"&\
+          supportURL="https://github.com/am-silex/anki_cambridge"&\
+          minVer0="0"&\
+          maxVer0="0"&\
+          desc="Test desc - to be replaced"&\
+          id="1875288089"&\
+          submit="Update"&\
+          v21file0=@$GITHUB_WORKSPACE/$GITHUB_SHA.zip'\
+          c $GITHUB_WORKSPACE/cookie.txt\
+          https://ankiweb.net/shared/upload
           
-      - name: Show Response
-        run: echo ${{ steps.myRequest.outputs.response }}
-
         
-
- 
-        
-     
-
-
-        
-
-
-
-
-
-
-
-
+      
