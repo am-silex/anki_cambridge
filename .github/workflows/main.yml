@@ -60,7 +60,7 @@ jobs:
           submit="Update"&
           v21file0=@$GITHUB_WORKSPACE/$GITHUB_SHA.zip'
           -c $GITHUB_WORKSPACE/cookie.txt
-          https://ankiweb.net/shared/upload
+          https://postman-echo.com/post
           
         
       
