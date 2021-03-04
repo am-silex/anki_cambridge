@@ -48,6 +48,7 @@ jobs:
           echo "ANKI_COOKIE="$(cat $GITHUB_WORKSPACE/cookie.txt | grep -oP '^#HttpOnly_ankiweb.net.+ankiweb\s+\K.+$') >> $GITHUB_ENV
         
       - name: Uploading on ankiweb.net
+        id: myRequest
         uses: fjogeleit/http-request-action@master
         with:
           url: 'https://ankiweb.net/shared/upload'          
@@ -65,6 +66,9 @@ jobs:
             'submit' : 'Update'
             }
           files: '{ "v21file0": "${{ github.workspace }}/${{ github.sha }}.zip" }'
+          
+      - name: Show Response
+        run: echo ${{ steps.myRequest.outputs.response }}
 
         
 
