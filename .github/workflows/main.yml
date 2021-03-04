@@ -48,6 +48,8 @@ jobs:
           echo "ANKI_COOKIE="$(cat $GITHUB_WORKSPACE/cookie.txt | grep -oP '^#HttpOnly_ankiweb.net.+ankiweb\s+\K.+$') >> $GITHUB_ENV
         
       - name: Uploading on ankiweb.net
+        env:
+          GITHUB_WORKSPACE: ${{ GITHUB_WORKSPACE }}
         uses: fjogeleit/http-request-action@master
         with:
           url: 'https://ankiweb.net/shared/upload'          
