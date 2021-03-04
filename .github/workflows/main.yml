@@ -58,7 +58,7 @@ jobs:
           -F 'desc="Test desc - to be replaced"'
           -F 'id="1875288089"'
           -F 'submit="Update"'
-          -F 'v21file0=@$GITHUB_WORKSPACE/$GITHUB_SHA.zip'
+          -F 'v21file0='@$GITHUB_WORKSPACE/$GITHUB_SHA.zip
           -c $GITHUB_WORKSPACE/cookie.txt
           https://postman-echo.com/post
           
