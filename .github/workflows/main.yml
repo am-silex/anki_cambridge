@@ -59,8 +59,8 @@ jobs:
           -F 'desc="Test desc - to be replaced"'
           -F 'id="1875288089"'
           -F 'submit="Update"'
-          -F "v21file0="@$GITHUB_WORKSPACE/$GITHUB_SHA.zip";filename=v21file0"
-          -b $GITHUB_WORKSPACE/cookie
+          -F "v21file0=@${{ github.workspace }}/${{ github.sha }}.zip;filename=v21file0"
+          -b "ankiweb=${{ env.ANKI_COOKIE }}"
           https://ankiweb.net/shared/upload
           
         
