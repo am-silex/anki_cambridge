@@ -44,10 +44,10 @@ jobs:
           
         run: |
           CSRF=$(cat token.txt)          
-          curl -d 'submitted=1&csrf_token='$CSRF'&username='$ANKILOGIN'&password='$ANKIPASSWORD https://ankiweb.net/account/login -c $GITHUB_WORKSPACE/cookie.txt -b 'ankiweb=login' > null
-          echo "ANKI_COOKIE="$(cat $GITHUB_WORKSPACE/cookie.txt | grep -oP '^#HttpOnly_ankiweb.net.+ankiweb\s+\K.+$') >> $GITHUB_ENV
+          curl -d 'submitted=1&csrf_token='$CSRF'&username='$ANKILOGIN'&password='$ANKIPASSWORD https://ankiweb.net/account/login -c $GITHUB_WORKSPACE/cookie -b 'ankiweb=login' > null
+          echo "ANKI_COOKIE="$(cat $GITHUB_WORKSPACE/cookie | grep -oP '^#HttpOnly_ankiweb.net.+ankiweb\s+\K.+$') >> $GITHUB_ENV
         
-        #$GITHUB_WORKSPACE/cookie.txt
+        
       - name: Upload to anki
         run: >
           curl
@@ -60,7 +60,7 @@ jobs:
           -F 'id="1875288089"'
           -F 'submit="Update"'
           -F "v21file0="@$GITHUB_WORKSPACE/$GITHUB_SHA.zip";filename=v21file0"
-          -b 'ankiweb='$ANKI_COOKIE          
+          -b $GITHUB_WORKSPACE/cookie
           https://ankiweb.net/shared/upload
           
         
