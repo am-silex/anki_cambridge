@@ -51,16 +51,16 @@ jobs:
       - name: Upload to anki
         run: >
           curl
-          -F 'title="Cambridge Dictionary"'
-          -F 'tags="cambridge, addon, wordlists"'
-          -F 'supportURL="https://github.com/am-silex/anki_cambridge"'
-          -F 'minVer0="0"'
-          -F 'maxVer0="0"'
-          -F 'desc="Test desc - to be replaced"'
-          -F 'id="1875288089"'
-          -F 'submit="Update"'
-          -F "v21file0=@${{ github.workspace }}/${{ github.sha }}.zip;filename=v21file0"
-          -b "ankiweb=${{ env.ANKI_COOKIE }}"
+          -F 'title=Cambridge Dictionary'
+          -F 'tags=cambridge, addon, wordlists'
+          -F 'supportURL=https://github.com/am-silex/anki_cambridge'
+          -F 'minVer0=0'
+          -F 'maxVer0=0'
+          -F 'desc=Test desc - to be replaced'
+          -F 'id=1875288089'
+          -F 'submit=Update'
+          -F 'file=@${{ github.workspace }}/${{ github.sha }}.zip;filename=v21file0'
+          -b 'ankiweb=${{ env.ANKI_COOKIE }}'
           https://ankiweb.net/shared/upload
           
         
