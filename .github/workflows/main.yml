@@ -61,6 +61,7 @@ jobs:
           -F 'submit=Update'
           -F 'file=@${{ github.workspace }}/${{ github.sha }}.zip;filename=v21file0'
           -b 'ankiweb=${{ env.ANKI_COOKIE }}'
+          -v
           https://ankiweb.net/shared/upload?id=1875288089
           
         
