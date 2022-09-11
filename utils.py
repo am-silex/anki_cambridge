@@ -18,21 +18,29 @@ fields = ['Word','Examples','Definition','Audio','Picture','Pronunciation','Gram
 
 def fill_note(word_entry, note):
 
+    config = get_config()
+    pronunciation_uk = config['pronunciation_uk'] if 'pronunciation_uk' in config else True
+    pronunciation_us = config['pronunciation_us'] if 'pronunciation_us' in config else True
+
     note['Word']            = word_entry.word_title
     note['Examples']        = "<br> ".join(word_entry.word_examples)
     note['Definition']      = word_entry.word_specific
-    note['Pronunciation']   = word_entry.word_pro_uk + ' ' + word_entry.word_pro_us
+    note['Pronunciation']   = ""
+    if pronunciation_uk:
+        note['Pronunciation'] += word_entry.word_pro_uk + ' ' 
+    if pronunciation_us:
+        note['Pronunciation'] += word_entry.word_pro_us
     note['Grammar']         = word_entry.word_part_of_speech
     note['Meaning']         = word_entry.word_general
     audio_field = ''
-    if word_entry.word_uk_media:
+    if word_entry.word_uk_media and pronunciation_uk:
         try:
             f_entry = get_file_entry(word_entry.word_uk_media,note['Word'])
             audio_field = audio_field + '[sound:' + unmunge_to_mediafile(f_entry)+'] '
         except :
             pass
     try:
-        if word_entry.word_us_media:
+        if word_entry.word_us_media and pronunciation_us:
             f_entry = get_file_entry(word_entry.word_us_media,note['Word'])
             audio_field = audio_field + '[sound:' + unmunge_to_mediafile(f_entry)+'] '
     except :
@@ -204,7 +212,7 @@ def get_config():
                 config = json.loads(f.read())
         except IOError:
             try:
-                config = {'cookie':''}
+                config = {'cookie':'', 'pronunciation_uk': True, 'pronunciation_us': True}
                 config_file = os.path.join(get_addon_dir(), 'config.json')
                 with open(config_file, 'w') as f:
                     json.dump(config, f, sort_keys=True, indent=2)
@@ -231,6 +239,8 @@ def update_config(config):
 def get_config_dict():
     config = {}
     config['cookie'] = ''
+    config['pronunciation_uk'] = True
+    config['pronunciation_us'] = True
     return config
 
 def find_note_with_url_pictures(AddonDialog):
