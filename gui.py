@@ -279,6 +279,28 @@ class AddonConfigWindow(QDialog):
         self.ledit_cookie.setText(self.config['cookie'] if self.config['cookie'] else '')
         h_layout.addWidget(self.ledit_cookie,QtCore.Qt.AlignRight)
         layout.addLayout(h_layout,QtCore.Qt.AlignTop)
+
+        # Pronunciation UK
+        h_layout = QHBoxLayout()
+        h_label = QLabel()
+        h_label.setText('Pronunciation UK:')
+        h_layout.addWidget(h_label)
+        h_layout.addStretch()        
+        self.cb_pronunciation_uk = QCheckBox()
+        self.cb_pronunciation_uk.setChecked(self.config['pronunciation_uk'] if 'pronunciation_uk' in self.config else True)
+        h_layout.addWidget(self.cb_pronunciation_uk,QtCore.Qt.AlignRight)
+        layout.addLayout(h_layout,QtCore.Qt.AlignTop)
+
+        # Pronunciation US
+        h_layout = QHBoxLayout()
+        h_label = QLabel()
+        h_label.setText('Pronunciation US:')
+        h_layout.addWidget(h_label)
+        h_layout.addStretch()        
+        self.cb_pronunciation_us = QCheckBox()
+        self.cb_pronunciation_us.setChecked(self.config['pronunciation_us'] if 'pronunciation_us' in self.config else True)
+        h_layout.addWidget(self.cb_pronunciation_us,QtCore.Qt.AlignRight)
+        layout.addLayout(h_layout,QtCore.Qt.AlignTop)
         
         # Wordlist IDs
         h_layout = QVBoxLayout()
@@ -348,6 +370,8 @@ class AddonConfigWindow(QDialog):
     def btn_Ok(self):
         # Fill config dict with current settings and write them to file
         self.config['cookie'] = self.ledit_cookie.text()
+        self.config['pronunciation_uk'] = self.cb_pronunciation_uk.isChecked()
+        self.config['pronunciation_us'] = self.cb_pronunciation_us.isChecked()
         wl = []
         for i in self.iterAllItems(self.wordlist_list):
             wl.append(i.text())
