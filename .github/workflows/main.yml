@@ -22,10 +22,12 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v2      
       
       - name: Archive all repo for sending
-        run: zip -r $GITHUB_WORKSPACE/$GITHUB_SHA.zip . -x '*.git*' '.github',
+        run: |
+          zip -r $GITHUB_WORKSPACE/$GITHUB_SHA.zip . -x '*.git*' '.github',
+          ls -d -1 "$PWD/"**/
 
       - name: Get csrf token from Anki
         id: authRequest
@@ -61,7 +63,6 @@ jobs:
           -F 'submit=Update'
           -F 'file=@${{ github.workspace }}/${{ github.sha }}.zip;filename=v21file0'
           -b 'ankiweb=${{ env.ANKI_COOKIE }}'
-          https://ankiweb.net/shared/upload?id=1875288089
+          -v
+          https://ankiweb.net/shared/upload
           
-        
-      
