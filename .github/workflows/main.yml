@@ -58,7 +58,7 @@ jobs:
           -F 'supportURL=https://github.com/am-silex/anki_cambridge'
           -F 'minVer0=0'
           -F 'maxVer0=0'
-          -F "desc=Anki Add-on for download definition and sound from Cambridge Dictionary website. What it's done (so far): Creating notes from link to a word (word title, definition, gramar, IPA, sound, meanings, examples) Fetching words from your wordlists - if you supply cookie for you account and wordlist IDs Please, follow these links for quick visual how-to guide. https://ibb.co/94cq40m https://ibb.co/WBzw37R Anyone willing to improve my idea and contribute is welcome on addon's git: https://github.com/am-silex/anki_cambridge"
+          -F "desc=1Anki Add-on for download definition and sound from Cambridge Dictionary website. What it's done (so far): Creating notes from link to a word (word title, definition, gramar, IPA, sound, meanings, examples) Fetching words from your wordlists - if you supply cookie for you account and wordlist IDs Please, follow these links for quick visual how-to guide. https://ibb.co/94cq40m https://ibb.co/WBzw37R Anyone willing to improve my idea and contribute is welcome on addon's git: https://github.com/am-silex/anki_cambridge"
           -F 'id=1875288089'
           -F 'submit=Update'
           -F 'file=@${{ github.workspace }}/${{ github.sha }}.zip;filename=v21file0'
