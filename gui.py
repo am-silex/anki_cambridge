@@ -143,6 +143,7 @@ class WordDefDialogue(QDialog):
             l2_def_check = QCheckBox(word_specific)
             l2_def_check.l2_def = word_specific
             l2_def_check.word = word_el
+            l2_def_check.word_specific = word_specific
             l2_def_check.stateChanged.connect(self.toggle_def)
             gl.addWidget(l2_def_check, row, 0,1,-1)
             self.l2_def = word_specific
@@ -167,48 +168,20 @@ class WordDefDialogue(QDialog):
 
     def toggle_def(self,state):
         sender = self.sender()
-        word = sender.word
+        word_specific = sender.word_specific
         if self.sender():
-            if word in self.selected_defs:
-                self.selected_defs.remove(word)
+            if word_specific in self.selected_defs:
+                self.selected_defs.remove(word_specific)
             else:
-                self.selected_defs.append(word)
+                self.selected_defs.append(word_specific)
 
     def create_selected_notes(self):
 
-        if not self.selected_defs:
-            mw.cddownloader.clean_up()
-            self.word_data = []
-            self.word = None
-            self.selected_defs = [] # list of selected defs (l1_word)
-            return
+        for word_el in self.word_data
+            for word_to_save in self.selected_defs:
+                if word_el.word_specific == word_to_save
+                    add_word(word_el, self.model)
 
-        for word_to_save in self.selected_defs:
-            #self.add_note(word_to_save)
-            add_word(word_to_save, self.model)
-        #word_to_add = self.word_data
-        #for next_def in self.selected_defs:
-        #    for l1_word in self.word_data:
-        #        for l2_key, l2_value in l1_word['meanings'].items():
-        #            for l3_specific_def, l3_examples in l2_value.items():
-        #                if l3_specific_def == next_def:
-        #                    word_to_save = {}
-        #                    word_to_save['word_title'] = l1_word['word_title']
-        #                    word_to_save['word_gram'] = l1_word['word_gram']
-        #                    word_to_save['word_pro_uk'] = l1_word['word_pro_uk']
-        #                    word_to_save['word_uk_media'] = l1_word['word_uk_media']
-        #                    word_to_save['word_pro_us'] = l1_word['word_pro_us']
-        #                    word_to_save['word_us_media'] = l1_word['word_us_media']
-        #                    word_to_save['word_general'] = l2_key
-        #                    word_to_save['word_specific'] = l3_specific_def
-        #                    word_to_save['word_examples'] = "<br> ".join(l3_examples)
-        #                    word_to_save['word_image'] = l1_word['word_image']
-        #                    self.add_note(word_to_save)
-                            
-        #for sel_def in self.selected_defs:
-        #    if self.word_data[sel_def]:
-        #mw.cddownloader.clean_up()
-        #self.close(QDialog.Accepted)
         self.deletion_mark = True
         self.done(0)
        
