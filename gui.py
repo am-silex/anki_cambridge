@@ -181,8 +181,6 @@ class WordDefDialogue(QDialog):
             for word_to_save in self.selected_defs:
                 if word_el.word_specific == word_to_save
                     add_word(word_el, self.model)
-
-        self.deletion_mark = True
         self.done(0)
        
     def set_model(self):
