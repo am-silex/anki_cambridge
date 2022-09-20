@@ -22,10 +22,16 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v2      
       
       - name: Archive all repo for sending
         run: zip -r $GITHUB_WORKSPACE/$GITHUB_SHA.zip . -x '*.git*' '.github',
+        
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: add-on.zip
+          path: $GITHUB_WORKSPACE/$GITHUB_SHA.zip
 
       - name: Get csrf token from Anki
         id: authRequest
