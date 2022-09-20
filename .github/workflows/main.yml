@@ -31,7 +31,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: add-on.zip
-          path: /home/runner/work/anki_cambridge/anki_cambridge/$GITHUB_SHA.zip
+          path: /home/runner/work/anki_cambridge/anki_cambridge/*.zip
 
       - name: Get csrf token from Anki
         id: authRequest
