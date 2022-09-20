@@ -177,10 +177,10 @@ class WordDefDialogue(QDialog):
 
     def create_selected_notes(self):
 
-        for word_el in self.word_data
+        for wd_entry in self.word_data:
             for word_to_save in self.selected_defs:
-                if word_el.word_specific == word_to_save
-                    add_word(word_el, self.model)
+                if wd_entry.word_specific == word_to_save
+                    add_word(wd_entry, self.model)
         self.accept()
        
     def set_model(self):
