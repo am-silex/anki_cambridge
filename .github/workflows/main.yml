@@ -29,7 +29,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: add-on.zip
-          path: $GITHUB_WORKSPACE/$GITHUB_SHA.zip
+          path: $GITHUB_WORKSPACE/*.zip
 
       - name: Get csrf token from Anki
         id: authRequest
@@ -43,7 +43,7 @@ jobs:
           
       - name: Auth with Anki
         env:
-          ANKILOGIN: ${{ secrets.ANKILOGIN }}
+          ANKILOGIN: ${{ secrets.ANKILOGIN }}token.txt
           ANKIPASSWORD: ${{ secrets.ANKIPASSWORD }}
           
         run: |
