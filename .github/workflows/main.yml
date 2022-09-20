@@ -25,7 +25,9 @@ jobs:
       - uses: actions/setup-python@v2      
       
       - name: Archive all repo for sending
-        run: zip -r $GITHUB_WORKSPACE/$GITHUB_SHA.zip . -x '*.git*' '.github',
+        run: |
+          zip -r $GITHUB_WORKSPACE/$GITHUB_SHA.zip . -x '*.git*' '.github',
+          ls -l
       - uses: actions/upload-artifact@v3
         with:
           name: add-on.zip
