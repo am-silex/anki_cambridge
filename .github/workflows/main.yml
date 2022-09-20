@@ -41,7 +41,7 @@ jobs:
           
       - name: Auth with Anki
         env:
-          ANKILOGIN: ${{ secrets.ANKILOGIN }}token.txt
+          ANKILOGIN: ${{ secrets.ANKILOGIN }}
           ANKIPASSWORD: ${{ secrets.ANKIPASSWORD }}
           
         run: |
@@ -66,5 +66,3 @@ jobs:
           -v
           https://ankiweb.net/shared/upload
           
-        
-      
