@@ -27,7 +27,7 @@ jobs:
       - name: Archive all repo for sending
         run: |
           zip -r $GITHUB_WORKSPACE/$GITHUB_SHA.zip . -x '*.git*' '.github',
-          ls -l
+          ls -d -1 "$PWD/"**/
       - uses: actions/upload-artifact@v3
         with:
           name: add-on.zip
