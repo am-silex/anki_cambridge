@@ -179,7 +179,7 @@ class WordDefDialogue(QDialog):
 
         for wd_entry in self.word_data:
             for word_to_save in self.selected_defs:
-                if wd_entry.word_specific == word_to_save
+                if wd_entry.word_specific == word_to_save:
                     add_word(wd_entry, self.model)
         self.accept()
        
