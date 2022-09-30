@@ -14,8 +14,8 @@ import queue
 import traceback
 from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import * 
-from PyQt5 import QtCore 
-from PyQt5.QtCore import (QThread, QObject, pyqtSignal, QUrl)
+from PyQt5 import QtCore
+from PyQt5.QtCore import (QThread, QObject, pyqtSignal, QUrl, Qt)
 from PyQt5.QtWebEngineWidgets import QWebEngineView 
 
 from aqt import mw
@@ -106,16 +106,17 @@ class WordDefDialogue(QDialog):
 
         self.setWindowTitle(self.word)
         self.setWindowIcon(QIcon(os.path.join(icons_dir, 'camb_icon.png')))
-        #self.setMaximumSize(600,200)
-        #scroll = QScrollArea()        
-        
-        #wg = QWidget()
-        #wg.setLayout(layout)
-        #wg.setMaximumSize(700,700)
-        #scroll.setWidget(wg)
-        #scroll.setParent(self)
-        layout = QVBoxLayout()
-        self.setLayout(layout)
+
+        dialogLayout = QVBoxLayout(self)
+        scrollArea = QScrollArea()
+        scrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        dialogLayout.addWidget(scrollArea)
+
+        scrollAreaContent = QWidget()
+        scrollArea.setWidget(scrollAreaContent)
+
+        layout = QVBoxLayout(scrollAreaContent)
+
         word_specific = ''
         word_part_of_speech = ''
         word_dictionary = ''
@@ -156,15 +157,18 @@ class WordDefDialogue(QDialog):
         dialog_buttons.button(QDialogButtonBox.Ok).clicked.connect(self.create_selected_notes)
         dialog_buttons.button(QDialogButtonBox.Cancel).clicked.connect(self.reject)
         dialog_buttons.button(QDialogButtonBox.SaveAll).clicked.connect(self.save_all)
-        layout.addWidget(dialog_buttons)
+        dialogLayout.addWidget(dialog_buttons)
 
         # Automatic add single word with single def if in add_single mode
         if len(self.word_data) == 1:
             self.selected_defs.append(self.word_data[0])
             self.create_selected_notes()
-            self.single_word = True
-        self.setMaximumSize(700,300)
-        self.adjustSize()
+            self.single_word = True   
+        
+        scrollAreaContent.adjustSize() # required to get correct content area size
+        scrollArea.verticalScrollBar().adjustSize() # required to get the correct scrollbar size
+        scrollArea.setMinimumWidth(scrollAreaContent.size().width() + scrollArea.verticalScrollBar().width())
+        
 
     def toggle_def(self,state):
         sender = self.sender()
@@ -608,4 +612,3 @@ class MyQWebEngineView(QWebEngineView):
 
     def url_changed(self):
         QMessageBox.warning(mw,'Link is not provided','URL changed')
-
