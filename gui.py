@@ -16,7 +16,8 @@ from PyQt5.QtGui import QIcon, QFont
 from PyQt5.QtWidgets import * 
 from PyQt5 import QtCore
 from PyQt5.QtCore import (QThread, QObject, pyqtSignal, QUrl, Qt)
-from PyQt5.QtWebEngineWidgets import QWebEngineView 
+from PyQt5.QtWebEngineWidgets import QWebEnginePage, QWebEngineView, QWebEngineProfile
+from PyQt5.QtNetwork import QNetworkCookie
 
 from aqt import mw
 from aqt.utils import askUserDialog, showInfo, showText, showWarning, tooltip
@@ -339,7 +340,9 @@ class AddonConfigWindow(QDialog):
 
     def btn_auth_clicked(self):
         auth_window = WebPageView(AUTH_URL)
-        auth_window.exec_()
+        auth_window.exec()
+        self.config['cookie'] = auth_window.get_cookie()
+        update_config(self.config)
         
 
     def btn_Ok(self):
@@ -589,16 +592,40 @@ class WebPageView(QDialog):
     def __init__(self, user_url=''):
         self.user_url = user_url
         QDialog.__init__(self)
+        self.webview= QWebEngineView()
+        self.profile = QWebEngineProfile("storage", self.webview)
+        self.cookie_store = self.profile.cookieStore()
+        self.cookie_store.cookieAdded.connect(self.onCookieAdded)
+        self.webpage = QWebEnginePage(self.profile, self.webview)
+        self.webview.setPage(self.webpage)
+        self.cookies = []
         self.initUI()
 
     def initUI(self):
         layout = QVBoxLayout()
         self.setLayout(layout)
-        self.webpage = MyQWebEngineView()
         
-        layout.addWidget(self.webpage)
-        self.webpage.load(QUrl(self.user_url))
-        self.webpage.show()
+        layout.addWidget(self.webview)
+        self.webview.load(QUrl(self.user_url))
+        self.webview.show()
+
+    def onCookieAdded(self, cookie):
+        for c in self.cookies:
+            if c.hasSameIdentifier(cookie):
+                return
+        self.cookies.append(QNetworkCookie(cookie))
+
+    def get_cookie(self):
+        cookie_builder = ""
+        for c in self.cookies:
+            # Get cookies that domain contains cambridge.org
+            if "cambridge.org" not in str(c.domain()):
+                continue
+
+            name = bytearray(c.name()).decode()
+            value = bytearray(c.value()).decode()
+            cookie_builder = name + "=" + value + "; " + cookie_builder
+        return cookie_builder
 
 class MyQWebEngineView(QWebEngineView):
     def __init__(self):
