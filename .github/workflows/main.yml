@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Autodeploy on ankiweb.net
+name: Publish on ankiweb.net
 
 # Controls when the action will run. 
 on:
