@@ -55,11 +55,11 @@ jobs:
         run: >
           curl
           -F 'title=Cambridge Dictionary'
-          -F 'tags=cambridge, addon, wordlists'
+          -F 'tags=cambridge, addon, word lists'
           -F 'supportURL=https://github.com/am-silex/anki_cambridge'
           -F 'minVer0=0'
           -F 'maxVer0=0'
-          -F "desc=Anki Add-on for download definition and sound from Cambridge Dictionary website. What it's done (so far): Creating notes from link to a word (word title, definition, gramar, IPA, sound, meanings, examples) Fetching words from your wordlists - if you supply cookie for you account and wordlist IDs Please, follow these links for quick visual how-to guide. https://ibb.co/94cq40m https://ibb.co/WBzw37R Anyone willing to improve my idea and contribute is welcome on addon's git: https://github.com/am-silex/anki_cambridge"
+          -F "desc=Anki Add-on for downloading words definitions and associating resources (pronunciation, images, etc) from Cambridge Dictionary website. What it's done (so far): Creating notes from link to a word (word title, definition, grammar, IPA, sound, meanings, examples) Fetching words from your word lists (with deleting words after successful fetching). Anyone willing to improve my idea and contribute is welcome on addon's GitHub: https://github.com/am-silex/anki_cambridge"
           -F 'id=1875288089'
           -F 'submit=Update'
           -F 'v21file0=@${{ github.workspace }}/${{ github.sha }}.zip'
