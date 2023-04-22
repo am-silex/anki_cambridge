@@ -231,13 +231,13 @@ class AddonConfigWindow(QDialog):
         self.setLayout(layout)
 
         # Authorize and save cookies - Google OAuth2
-        # Some useful varibale go here
+        # Some useful variable go here
         auth_layout = QHBoxLayout()
         auth_label = QLabel()
-        auth_label.setText('Auorization status:')
+        auth_label.setText('Authorization status:')
         auth_layout.addWidget(auth_label)
         auth_label_status = QLabel()
-        auth_label_status.setText('Unknown')
+        auth_label_status.setText('<b>Singed in</b>' if self.config['cookie'] else 'Not signed in')
         auth_layout.addWidget(auth_label_status)
         auth_btn = QPushButton()
         auth_btn.setText('Sign in')
@@ -251,10 +251,11 @@ class AddonConfigWindow(QDialog):
         h_label.setText('Cookie:')
         h_layout.addWidget(h_label)
         h_layout.addStretch()        
-        self.ledit_cookie = QLineEdit()
-        self.ledit_cookie.setText(self.config['cookie'] if self.config['cookie'] else '')
-        h_layout.addWidget(self.ledit_cookie,QtCore.Qt.AlignRight)
-        layout.addLayout(h_layout,QtCore.Qt.AlignTop)
+        self.editor_cookie = QLineEdit()
+        self.editor_cookie.setClearButtonEnabled(True)
+        self.editor_cookie.setText(self.config['cookie'] if self.config['cookie'] else '')
+        h_layout.addWidget(self.editor_cookie,QtCore.Qt.AlignRight)
+        layout.addLayout(h_layout, QtCore.Qt.AlignTop)
 
         # Pronunciation UK
         h_layout = QHBoxLayout()
@@ -278,7 +279,7 @@ class AddonConfigWindow(QDialog):
         h_layout.addWidget(self.cb_pronunciation_us,QtCore.Qt.AlignRight)
         layout.addLayout(h_layout,QtCore.Qt.AlignTop)
         
-        # Wordlist IDs
+        # word list IDs
         h_layout = QVBoxLayout()
         h_label = QLabel()
         #h_label.setText('Cookie:')
@@ -332,6 +333,7 @@ class AddonConfigWindow(QDialog):
         btn_Ok.clicked.connect(self.btn_Ok)
         btn_Cancel.clicked.connect(self.close)
 
+
     def find_and_fetch_pictures(self):
         self.progress.visible = True
         find_note_with_url_pictures(self)
@@ -340,14 +342,19 @@ class AddonConfigWindow(QDialog):
 
     def btn_auth_clicked(self):
         auth_window = WebPageView(AUTH_URL)
+        auth_window.accepted.connect(self.onAuthCompleted)
         auth_window.exec()
         self.config['cookie'] = auth_window.get_cookie()
         update_config(self.config)
-        
+        self.editor_cookie.setText(self.config['cookie'] if self.config['cookie'] else '')
+
+    def onAuthCompleted(self):
+        QMessageBox.information(self, 'Singing in', 'Signed in successfully')
+
 
     def btn_Ok(self):
         # Fill config dict with current settings and write them to file
-        self.config['cookie'] = self.ledit_cookie.text()
+        self.config['cookie'] = self.editor_cookie.text()
         self.config['pronunciation_uk'] = self.cb_pronunciation_uk.isChecked()
         self.config['pronunciation_us'] = self.cb_pronunciation_us.isChecked()
         wl = []
@@ -418,7 +425,7 @@ class WParseSavedWL(QObject):
             for n in range(1,5):
                 thread_to_restart = getattr(self, 'thread'+str(n), None)
                 if thread_to_restart != None and thread_to_restart.isFinished():
-                    thread_to_restart.start(5)
+                    thread_to_restart.start()
         if evt == 'need_to_stop': 
             self.need_to_stop = True
             tooltip(
@@ -460,7 +467,7 @@ connection and try again."""
         elif "403" in err:
             return _(
                 """\
-Authentification failed. Either your cookie expired or your are trying to delete entries from a community wordlist."""
+Authentication failed. Either your cookie expired or your are trying to delete entries from a community wordlist."""
             )
         elif "code: 500" in err:
             return _(
@@ -546,7 +553,7 @@ class FetchThread(QThread):
             return
 
         try:
-            self._fetch_wrods()
+            self._fetch_words()
             self.fireEvent('batch_completed')
         except :
             err = traceback.format_exc()
@@ -572,7 +579,7 @@ class FetchThread(QThread):
         for wl_entry in self.downloader.wordlist:
             self.wordlist_queue.put(wl_entry)
 
-    def _fetch_wrods(self):
+    def _fetch_words(self):
         n = 0
         while n < self.max_words and  not self.wordlist_queue.empty():
             wl_entry = self.wordlist_queue.get()
@@ -598,6 +605,7 @@ class WebPageView(QDialog):
         self.cookie_store.cookieAdded.connect(self.onCookieAdded)
         self.webpage = QWebEnginePage(self.profile, self.webview)
         self.webview.setPage(self.webpage)
+        self.webview.urlChanged.connect(self.onUrlChanged)
         self.cookies = []
         self.initUI()
 
@@ -626,6 +634,11 @@ class WebPageView(QDialog):
             value = bytearray(c.value()).decode()
             cookie_builder = name + "=" + value + "; " + cookie_builder
         return cookie_builder
+    
+    def onUrlChanged(self):
+        if self.webview.url().toString() != AUTH_URL:
+            self.accept()
+
 
 class MyQWebEngineView(QWebEngineView):
     def __init__(self):
