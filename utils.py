@@ -11,7 +11,7 @@ from . import styles
 from ._names import *
 from .mediafile_utils import *
 
-from PyQt5.QtWidgets import QMessageBox
+from PyQt6.QtWidgets import QMessageBox
 
 
 fields = ['Word','Examples','Definition','Audio','Picture','Pronunciation','Grammar','Meaning','SynonymAntonym']

@@ -22,14 +22,14 @@ from .field_data import FieldData, JapaneseFieldData
 # # versions of the field names. When these lists contain upper-case
 # # letters, no field will ever be matched and nothing will be
 # # downloaded.
-expression_fields = [u'expression', u'word']
+expression_fields = ['expression', 'word']
 # Fields we get the ‘normal’ download text from.
 #
 # Text from these fields is used by most downloaders. When no field is
 # found here, we use the first field.
 
 
-reading_keys = [u'reading', u'kana', u'かな', u'仮名']
+reading_keys = ['reading', 'kana', 'かな', '仮名']
 # Fields we get our Japanese text from.
 #
 # For Japanesepod we use these fields as source. A ‘Reading’ field is
@@ -37,7 +37,7 @@ reading_keys = [u'reading', u'kana', u'かな', u'仮名']
 # useful way (that is, with the reading in square brackets).
 
 
-audio_field_keys = [u'audio', u'sound']
+audio_field_keys = ['audio', 'sound']
 # Fields we put our downloaded sounds in. Don’t try crazy stuff here.
 
 split_kanji_kana = False
@@ -56,7 +56,7 @@ def uniqify_list(seq):
 
 
 def field_data(note, audio_field, reading=False):
-    u"""Return FieldData when we have a source field
+    """Return FieldData when we have a source field
 
     Return FieldData when we have a matching source field for our
     audio field.  """
@@ -138,15 +138,15 @@ def field_data_from_kanji_kana(note, fn):
 
 
 def get_side_fields(card, note):
-    u"""Return a list of FieldDatas for the currently visible side
+    """Return a list of FieldDatas for the currently visible side
 
     Go through the fields of the currently visible side and return
     relevant data, as FieldData objects, for audio fields where we
     have matching text fields."""
     if 'question' == mw.reviewer.state:
-        template = card.template()[u'qfmt']
+        template = card.template()['qfmt']
     else:
-        template = card.template()[u'afmt']
+        template = card.template()['afmt']
     audio_field_names = []
     all_field_names = [item[0] for item in note.items()]
     for afk in audio_field_keys:
@@ -184,7 +184,7 @@ def get_side_fields(card, note):
 
 
 def get_note_fields(note):
-    u"""Return a list of FieldDatas for the note
+    """Return a list of FieldDatas for the note
 
     Go through the note’s fields and return relevant data, as
     FieldData objects, for audio fields where we have matching text

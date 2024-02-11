@@ -21,8 +21,8 @@ from field_data import FieldData
 # Make this work without PyQt
 with_pyqt = True
 try:
-    from PyQt5.QtGui import QImage
-    from PyQt5.QtCore import QSize, Qt
+    from PyQt6.QtGui import QImage
+    from PyQt6.QtCore import QSize, Qt
 except ImportError:
     with_pyqt = False
 
@@ -76,7 +76,7 @@ class AudioDownloader(object):
         # False) we use the current directory.
         self.site_icon = None
         # The sites’s favicon.
-        self.file_extension = u'.mp3'
+        self.file_extension = '.mp3'
         # Most sites have mp3 files.
         self.word_data = []
         # List contains dictionary(s) of word's definition(s)
@@ -110,7 +110,7 @@ class AudioDownloader(object):
         raise NotImplementedError("Use a class derived from this.")
 
     def maybe_get_icon(self):
-        u"""
+        """
         Get icon for the site as a QImage if we haven’t already.
 
         Get the site icon, either the 'rel="icon"' or the favicon, for
@@ -157,7 +157,7 @@ class AudioDownloader(object):
                 max_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
 
     def get_favicon(self):
-        u"""
+        """
         Get favicon for the site.
 
         This is called when the site_url can’t be loaded or when that
@@ -212,7 +212,7 @@ class AudioDownloader(object):
         # get_data raises all kinds of exceptions that fly through
         # here.)
         tfile = tempfile.NamedTemporaryFile(
-            delete=False, prefix=u'anki_audio_', suffix=self.file_extension)
+            delete=False, prefix='anki_audio_', suffix=self.file_extension)
         tfile.write(data)
         tfile.close()
         return tfile.name
