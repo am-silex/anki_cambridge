@@ -10,8 +10,8 @@ Anki2 add-on to download card's fields with audio from Cambridge Dictionary
 """
 
 import os
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QAction, QMenu
+from PyQt6.QtGui import QIcon
+from PyQt6.QtWidgets import QAction, QMenu
 
 
 from aqt import mw
@@ -134,7 +134,7 @@ def download_for_note(ask_user=False, note=None, editor=None):
     field_data = get_note_fields(note)
     if not field_data:
         # Complain before we show the empty dialog.
-        tooltip(u'Nothing to download.')
+        tooltip('Nothing to download.')
         return
 
     if ask_user:
@@ -152,26 +152,26 @@ def download_for_note(ask_user=False, note=None, editor=None):
 
 
 def download_manual():
-    u"""Do the download with the dialog before we go."""
+    """Do the download with the dialog before we go."""
     download_for_note(ask_user=True)
 
 
 def download_off():
-    u"""Deactivate the download menus."""
+    """Deactivate the download menus."""
     mw.note_download_action.setEnabled(False)
     mw.side_download_action.setEnabled(False)
     mw.manual_download_action.setEnabled(False)
 
 
 def download_on():
-    u"""Activate the download menus."""
+    """Activate the download menus."""
     mw.note_download_action.setEnabled(True)
     mw.side_download_action.setEnabled(True)
     mw.manual_download_action.setEnabled(True)
 
 
 def editor_download_editing(self):
-    u"""Do the download when we are in the note editor."""
+    """Do the download when we are in the note editor."""
     self.saveNow()
     download_for_note(ask_user=True, note=self.note, editor=self)
     # Fix for issue #10.

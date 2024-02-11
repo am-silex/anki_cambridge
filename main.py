@@ -1,9 +1,9 @@
-#from PyQt5.QtGui import QIcon, QFont
-#from PyQt5.QtWidgets import * 
+# from PyQt6.QtGui import QIcon, QFont
+# from PyQt6.QtWidgets import *
 
-#from aqt import mw
-#from aqt.utils import tooltip
-#from anki.hooks import addHook
+# from aqt import mw
+# from aqt.utils import tooltip
+# from anki.hooks import addHook
 
 from aqt import mw
 from aqt.qt import QAction, QMenu, QDialog
@@ -14,53 +14,28 @@ from ._names import *
 
 from .Cambridge import CDDownloader
 
-CREATE_NEW_NOTES_SHORTCUT = "Ctrl+l"
 
 def ask_user_for_link():
     window = LinkDialogue()
     setattr(mw, LINK_DLG_NAME, window)
-    r = window.exec_()
+    r = window.exec()
     downloader = mw.cddownloader
-    if r == QDialog.Accepted and downloader.word_data:
-        sd = WordDefDialogue(downloader.word_data,downloader.word)
-        sd.exec_()
+    if r == QDialog.DialogCode.Accepted and downloader.word_data:
+        sd = WordDefDialogue(downloader.word_data, downloader.word)
+        sd.exec()
         sd = None
 
-def ask_user_for_wordlist_link():
-    window = WordListLinkDialogue()
-    setattr(mw, LINK_DLG_NAME, window)
-    r = window.exec_()
-    #downloader = mw.cddownloader
-    #if r == QDialog.Accepted and downloader.word_data:
-    #    sd = WordDefDialogue(downloader.word_data,downloader.word)
-    #    sd.exec_()
-    #    sd = None
-    
-def open_main_windows_addon():
 
+def open_main_windows_addon():
     window = AddonConfigWindow()
-    window.exec_()
-    #if hasattr(mw, LINK_DLG_NAME):
-    #    addon_window = getattr(mw, LINK_DLG_NAME, None)
-    #    addon_window.activateWindow()
-    #    addon_window.raise_()
-    #else:
-    #    #config = utils.get_config()
-    #    #if config:
-    #        window = gui.LinkDialogue()
-    #        setattr(mw, LINK_DLG_NAME, window)
-    #        window.exec_()
-    #    #else:
-    #    #    showInfo("Unable to load config. Make sure that config.json "
-    #    #             "is present and not in use by other applications")
+    window.exec()
+
 
 def parse_saved_wl():
-    
     mw.wl_pareser = WParseSavedWL()
     mw.wl_pareser.parse()
-    
 
-    
+
 mw.edit_cambridge_submenu = QMenu(u"&Cambridge Dictionary", mw)
 mw.form.menuEdit.addSeparator()
 mw.form.menuEdit.addMenu(mw.edit_cambridge_submenu)
