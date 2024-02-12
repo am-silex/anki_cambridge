@@ -30,24 +30,24 @@ jobs:
           ls -d -1 "$PWD/"**/
           ls -l
 
-      - name: Get csrf token from Anki
-        id: authRequest
-        uses: fjogeleit/http-request-action@master
-        with:
-          url: 'https://ankiweb.net/account/login'
-          method: 'GET'
+      # - name: Get csrf token from Anki
+      #   id: authRequest
+      #   uses: fjogeleit/http-request-action@master
+      #   with:
+      #     url: 'https://ankiweb.net/account/login'
+      #     method: 'GET'
     
-      - name: Retrieve CSRF token
-        run: echo ${{ steps.authRequest.outputs.response }} | grep  -oP 'csrf_token" value="\K([^"]+)' > token.txt
+      # - name: Retrieve CSRF token
+      #   run: echo ${{ steps.authRequest.outputs.response }} | grep  -oP 'csrf_token" value="\K([^"]+)' > token.txt
           
-      - name: Auth with Anki
+      - name: Authenticate with Anki
         env:
-          ANKILOGIN: ${{ secrets.ANKILOGIN }}
-          ANKIPASSWORD: ${{ secrets.ANKIPASSWORD }}
+          ANKI_LOGIN: ${{ secrets.ANKILOGI_N }}
+          ANKI_PASSWORD: ${{ secrets.ANKIPASSWORD }}
           
         run: |
           CSRF=$(cat token.txt)          
-          curl -d 'submitted=1&csrf_token='$CSRF'&username='$ANKILOGIN'&password='$ANKIPASSWORD https://ankiweb.net/account/login -c $GITHUB_WORKSPACE/cookie -b 'ankiweb=login' > null
+          curl -d $'\n\u0010'$ANKI_LOGIN$'\u0012\u000'$ANKI_PASSWORD https://ankiweb.net/svc/account/login -c $GITHUB_WORKSPACE/cookie -b 'ankiweb=login' > null
           echo "ANKI_COOKIE="$(cat $GITHUB_WORKSPACE/cookie | grep -oP '^#HttpOnly_ankiweb.net.+ankiweb\s+\K.+$') >> $GITHUB_ENV
         
         
