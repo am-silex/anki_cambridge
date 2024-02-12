@@ -46,7 +46,6 @@ jobs:
           ANKI_PASSWORD: ${{ secrets.ANKIPASSWORD }}
           
         run: |
-          CSRF=$(cat token.txt)          
           curl -d $'\n\u0010'$ANKI_LOGIN$'\u0012\u000'$ANKI_PASSWORD https://ankiweb.net/svc/account/login -c $GITHUB_WORKSPACE/cookie -b 'ankiweb=login' > null
           echo "ANKI_COOKIE="$(cat $GITHUB_WORKSPACE/cookie | grep -oP '^#HttpOnly_ankiweb.net.+ankiweb\s+\K.+$') >> $GITHUB_ENV
         
