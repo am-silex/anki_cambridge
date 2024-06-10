@@ -208,16 +208,16 @@ def get_config():
     #else:
         try:
             config_file = os.path.join(get_addon_dir(), 'config.json')
-            with open(config_file, 'r') as f:
+            with open(config_file, 'r', encoding='utf-8') as f:
                 config = json.loads(f.read())
         except IOError:
             try:
                 config = {'cookie':'', 'pronunciation_uk': True, 'pronunciation_us': True}
                 config_file = os.path.join(get_addon_dir(), 'config.json')
-                with open(config_file, 'w') as f:
+                with open(config_file, 'w', encoding='utf-8') as f:
                     json.dump(config, f, sort_keys=True, indent=2)
                 f.close()
-                with open(config_file, 'r') as f:
+                with open(config_file, 'r', encoding='utf-8') as f:
                     config = json.loads(f.read())
             except:
                 config = None
@@ -229,7 +229,7 @@ def update_config(config):
     #else:
     try:
         config_file = os.path.join(get_addon_dir(), 'config.json')
-        with open(config_file, 'w') as f:
+        with open(config_file, 'w', encoding='utf-8') as f:
             json.dump(config, f, sort_keys=True, indent=2)
     except:
         # TODO: Improve error handling
